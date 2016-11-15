@@ -7,6 +7,8 @@ import (
 	"github.com/nsf/termbox-go"
 )
 
+var w, h int
+
 func main() {
 	err := termbox.Init()
 	if err != nil {
@@ -14,14 +16,10 @@ func main() {
 	}
 	defer termbox.Close()
 
-	w, h := termbox.Size()
+	w, h = termbox.Size()
 
 	termbox.SetInputMode(termbox.InputEsc | termbox.InputMouse)
-	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	termbox.Flush()
-
-	writeAt(5, 3, fmt.Sprintf("Terminal size: %dx%d", w, h), termbox.ColorWhite, termbox.ColorBlue)
-	termbox.Flush()
+	draw()
 
 	for quit := false; !quit; {
 		switch ev := termbox.PollEvent(); ev.Type {
@@ -30,10 +28,18 @@ func main() {
 				quit = true
 			}
 		case termbox.EventResize:
+			w, h = ev.Width, ev.Height
+			draw()
 		case termbox.EventError:
 			panic(ev.Err)
 		}
 	}
+}
+
+func draw() {
+	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+	writeAt(5, 3, fmt.Sprintf("Terminal size: %dx%d", w, h), termbox.ColorWhite, termbox.ColorBlue)
+	termbox.Flush()
 }
 
 func writeAt(x, y int, value string, fg, bg termbox.Attribute) {
