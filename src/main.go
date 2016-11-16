@@ -1,15 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/nsf/termbox-go"
 )
 
-var w, h int
+var w, h, listOffset int
 
 func main() {
+	readSongLengths()
+
 	err := termbox.Init()
 	if err != nil {
 		log.Panicln(err)
@@ -24,8 +25,21 @@ func main() {
 	for quit := false; !quit; {
 		switch ev := termbox.PollEvent(); ev.Type {
 		case termbox.EventKey:
-			if ev.Key == termbox.KeyCtrlC || ev.Key == termbox.KeyEsc {
+			switch ev.Key {
+			case termbox.KeyCtrlC, termbox.KeyEsc:
 				quit = true
+			case termbox.KeyPgup:
+				listOffset -= h
+				if listOffset < 0 {
+					listOffset = 0
+				}
+				draw()
+			case termbox.KeyPgdn:
+				listOffset += h
+				if listOffset > len(sidTunes)-1 {
+					listOffset = len(sidTunes)-1
+				}
+				draw()
 			}
 		case termbox.EventResize:
 			w, h = ev.Width, ev.Height
@@ -38,7 +52,9 @@ func main() {
 
 func draw() {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	writeAt(5, 3, fmt.Sprintf("Terminal size: %dx%d", w, h), termbox.ColorWhite, termbox.ColorBlue)
+	for y := 0; y < h; y++ {
+		writeAt(2, y, sidTunes[y + listOffset].Path, termbox.ColorWhite, termbox.ColorBlue)
+	}
 	termbox.Flush()
 }
 
