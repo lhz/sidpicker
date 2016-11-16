@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/lhz/considerate/cfg"
 	"github.com/lhz/considerate/hvsc"
-	
+
 	"log"
 
 	"github.com/nsf/termbox-go"
