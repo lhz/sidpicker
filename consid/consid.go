@@ -4,6 +4,7 @@ import (
 	"github.com/lhz/considerate/cfg"
 	"github.com/lhz/considerate/hvsc"
 
+	"fmt"
 	"log"
 
 	"github.com/nsf/termbox-go"
@@ -62,7 +63,12 @@ func main() {
 func draw() {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 	for y := 0; y < h; y++ {
-		writeAt(2, y, sidTunes[y + listOffset].Path, termbox.ColorWhite, termbox.ColorBlue)
+		tune := sidTunes[y + listOffset]
+		writeAt(  0, y, fmt.Sprintf("%05d", y + listOffset + 1), termbox.ColorRed, termbox.ColorDefault)
+		writeAt( 12, y, tune.Header.Name, termbox.ColorBlue, termbox.ColorDefault)
+		writeAt( 45, y, tune.Header.Author, termbox.ColorGreen, termbox.ColorDefault)
+		writeAt( 78, y, tune.Header.Released, termbox.ColorYellow, termbox.ColorDefault)
+		writeAt(112, y, tune.Path, termbox.ColorDefault, termbox.ColorDefault)
 	}
 	termbox.Flush()
 }
