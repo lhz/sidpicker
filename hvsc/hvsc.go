@@ -1,6 +1,8 @@
-package main
+package hvsc
 
 import (
+	"github.com/lhz/considerate/cfg"
+
 	"bufio"
 	"fmt"
 	"log"
@@ -22,8 +24,8 @@ type SidTune struct {
 
 var sidTunes []SidTune
 
-func readSongLengths() {
-	sidTunes = make([]SidTune, 0)
+func BuildTuneInfo(config *cfg.Config) []SidTune {
+	sidTunes := make([]SidTune, 0)
 
 	file, err := os.Open(fmt.Sprintf("%s/%s", config.HvscPath, SongLengthsFile))
     if err != nil {
@@ -46,4 +48,6 @@ func readSongLengths() {
 
 	log.Printf("Read %d tunes from file %s.\n", len(sidTunes), file.Name())
 	log.Printf("First tune: %q\n", sidTunes[0].Path)
+
+	return sidTunes
 }

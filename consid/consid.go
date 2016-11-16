@@ -1,15 +1,24 @@
 package main
 
 import (
+	"github.com/lhz/considerate/cfg"
+	"github.com/lhz/considerate/hvsc"
+	
 	"log"
 
 	"github.com/nsf/termbox-go"
 )
 
+var config *cfg.Config
 var w, h, listOffset int
 
+var sidTunes []hvsc.SidTune
+
+
 func main() {
-	readSongLengths()
+	config = cfg.ReadConfig()
+
+	sidTunes = hvsc.BuildTuneInfo(config)
 
 	err := termbox.Init()
 	if err != nil {

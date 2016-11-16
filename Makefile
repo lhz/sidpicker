@@ -1,13 +1,14 @@
-binary=bin/consid
+default: all
 
-default: run
+all: consid
+
+run: consid
+	$(GOPATH)/bin/consid
 
 godeps:
 	(cd src && go get -d ./...)
 
-$(binary): src/*.go
-	mkdir -p bin
-	go build -o $@ $^
+consid: $(GOPATH)/bin/consid
 
-run: $(binary)
-	@$(binary)
+$(GOPATH)/bin/consid: consid/consid.go
+	go build -o $@ $^
