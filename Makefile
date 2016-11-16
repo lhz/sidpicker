@@ -1,14 +1,14 @@
+consid=$(GOPATH)/bin/consid
+
 default: all
 
-all: consid
+all: $(consid)
 
-run: consid
-	$(GOPATH)/bin/consid
+run: $(consid)
+	$^
 
 godeps:
 	(cd src && go get -d ./...)
 
-consid: $(GOPATH)/bin/consid
-
-$(GOPATH)/bin/consid: consid/consid.go
+$(consid): consid/consid.go
 	go build -o $@ $^
