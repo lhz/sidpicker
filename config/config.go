@@ -12,6 +12,10 @@ type ConfigData struct {
 
 var Config *ConfigData
 
+func init() {
+	log.SetFlags(log.Ldate | log.Lmicroseconds)
+}
+
 func ReadConfig() {
 	Config = &ConfigData{}
 	err := env.Parse(Config)

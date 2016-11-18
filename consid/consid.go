@@ -12,12 +12,11 @@ import (
 
 var w, h, listOffset int
 
-var sidTunes []hvsc.SidTune
-
 func main() {
 	config.ReadConfig()
 
-	sidTunes = hvsc.ReadTunesInfoCached()
+	hvsc.ReadTunesInfoCached()
+	log.Printf("Read %d tunes.", hvsc.NumTunes)
 
 	err := termbox.Init()
 	if err != nil {
@@ -44,8 +43,8 @@ func main() {
 				draw()
 			case termbox.KeyPgdn:
 				listOffset += h
-				if listOffset > len(sidTunes)-1 {
-					listOffset = len(sidTunes) - 1
+				if listOffset > hvsc.NumTunes-1 {
+					listOffset = hvsc.NumTunes - 1
 				}
 				draw()
 			}
@@ -61,7 +60,7 @@ func main() {
 func draw() {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 	for y := 0; y < h; y++ {
-		tune := sidTunes[y+listOffset]
+		tune := hvsc.Tunes[y+listOffset]
 		writeAt(0, y, fmt.Sprintf("%05d", y+listOffset+1), termbox.ColorRed, termbox.ColorDefault)
 		writeAt(12, y, tune.Header.Name, termbox.ColorBlue, termbox.ColorDefault)
 		writeAt(45, y, tune.Header.Author, termbox.ColorGreen, termbox.ColorDefault)

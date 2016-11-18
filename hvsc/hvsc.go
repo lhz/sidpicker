@@ -46,42 +46,44 @@ type SidTune struct {
 	Header      SidHeader
 }
 
+var Tunes = make([]SidTune, 0)
+var NumTunes = 0
+
 var header = make([]byte, 124)
 
 // Read tunes data from cache file
-func ReadTunesInfoCached() []SidTune {
+func ReadTunesInfoCached() {
 	if _, err := os.Stat(hvscPathTo(TunesCacheFile)); os.IsNotExist(err) {
-		return ReadTunesInfo()
+		ReadTunesInfo()
+		return
 	}
 
+	log.Print("Reading cached tunes info.")
 	content, err := ioutil.ReadFile(hvscPathTo(TunesCacheFile))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	sidTunes := make([]SidTune, 0)
-	json.Unmarshal(content, &sidTunes)
-
-	return sidTunes
+	json.Unmarshal(content, &Tunes)
+	NumTunes = len(Tunes)
 }
 
 // Build tunes data from .sid-files and various documents
-func ReadTunesInfo() []SidTune {
-	sidTunes := make([]SidTune, 0)
-
+func ReadTunesInfo() {
 	file, err := os.Open(hvscPathTo(SongLengthsFile))
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
 
+	log.Print("Building tunes info cache.")
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line[0] == ';' {
 			tune := SidTune{Path: line[2:]}
 			tune.Header = ReadSidHeader(hvscPathTo(tune.Path))
-			sidTunes = append(sidTunes, tune)
+			Tunes = append(Tunes, tune)
 		}
 	}
 
@@ -89,9 +91,9 @@ func ReadTunesInfo() []SidTune {
 		log.Fatal(err)
 	}
 
-	log.Printf("Read %d tunes from file %s.\n", len(sidTunes), file.Name())
+	NumTunes = len(Tunes)
 
-	b, err := json.MarshalIndent(sidTunes, "", "  ")
+	b, err := json.MarshalIndent(Tunes, "", "  ")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -102,8 +104,6 @@ func ReadTunesInfo() []SidTune {
 	defer jsonFile.Close()
 
 	jsonFile.Write(b)
-
-	return sidTunes
 }
 
 func ReadSidHeader(fileName string) SidHeader {
