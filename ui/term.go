@@ -18,6 +18,7 @@ func Setup() {
 	}
 
 	w, h = termbox.Size()
+	listOffset = 0
 
 	termbox.SetInputMode(termbox.InputEsc | termbox.InputMouse)
 	draw()
