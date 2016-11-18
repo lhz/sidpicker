@@ -118,23 +118,22 @@ func ReadSidHeader(fileName string) SidHeader {
 		log.Fatal(err)
 	}
 
-	h := SidHeader{}
-
 	enc := binary.BigEndian
 
-	h.MagicID = string(header[0:4])
-	h.Version = int(enc.Uint16(header[4:]))
-	h.DataOffset = enc.Uint16(header[6:])
-	h.LoadAddress = enc.Uint16(header[8:])
-	h.InitAddress = enc.Uint16(header[10:])
-	h.PlayAddress = enc.Uint16(header[12:])
-	h.Songs = int(enc.Uint16(header[14:]))
-	h.StartSong = int(enc.Uint16(header[16:]))
-	h.Speed = enc.Uint32(header[18:])
-	h.Name = stringExtract(header[22:54])
-	h.Author = stringExtract(header[54:86])
-	h.Released = stringExtract(header[86:118])
-
+	h := SidHeader{
+		MagicID:     string(header[0:4]),
+		Version:     int(enc.Uint16(header[4:])),
+		DataOffset:  enc.Uint16(header[6:]),
+		LoadAddress: enc.Uint16(header[8:]),
+		InitAddress: enc.Uint16(header[10:]),
+		PlayAddress: enc.Uint16(header[12:]),
+		Songs:       int(enc.Uint16(header[14:])),
+		StartSong:   int(enc.Uint16(header[16:])),
+		Speed:       enc.Uint32(header[18:]),
+		Name:        stringExtract(header[22:54]),
+		Author:      stringExtract(header[54:86]),
+		Released:    stringExtract(header[86:118]),
+	}
 	return h
 }
 
