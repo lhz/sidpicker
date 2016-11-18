@@ -10,5 +10,5 @@ run: $(consid)
 godeps:
 	(cd src && go get -d ./...)
 
-$(consid): command/consid.go config/config.go hvsc/hvsc.go
+$(consid): command/consid.go config/config.go ui/term.go hvsc/hvsc.go
 	go build -o $@ $<
