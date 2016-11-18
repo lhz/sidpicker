@@ -2,17 +2,22 @@ package player
 
 import "log"
 
-var Chan chan string
+var MsgChan chan string
 
 func Setup() {
-	Chan = make(chan string)
+	MsgChan = make(chan string)
+	go Run()
 }
 
 func Run() {
 	for {
 		select {
-		case message := <-Chan:
+		case message := <-MsgChan:
 			log.Printf("Player got message %q.", message)
+			if message == "quit" {
+				log.Print("Player says goodbye.")
+				return
+			}
 		}
 	}
 }

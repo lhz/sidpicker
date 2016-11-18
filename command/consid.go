@@ -16,8 +16,11 @@ func main() {
 	log.Printf("Read %d tunes.", hvsc.NumTunes)
 
 	player.Setup()
-	go player.Run()
+
+	player.MsgChan <- "make some noise!"
 
 	ui.Setup()
 	ui.Run()
+
+	player.MsgChan <- "quit"
 }
