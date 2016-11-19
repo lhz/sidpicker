@@ -34,8 +34,8 @@ type SidHeader struct {
 	Flags       uint16
 	StartPage   byte
 	PageLength  byte
-	Sid2Address byte
-	Sid3Address byte
+	Sid2Address uint16
+	Sid3Address uint16
 }
 
 type SidTune struct {
@@ -133,6 +133,15 @@ func ReadSidHeader(fileName string) SidHeader {
 		Name:        stringExtract(header[22:54]),
 		Author:      stringExtract(header[54:86]),
 		Released:    stringExtract(header[86:118]),
+		Flags:       enc.Uint16(header[118:]),
+		StartPage:   header[120],
+		PageLength:  header[121],
+	}
+	if header[122] > 0 {
+		h.Sid2Address = uint16(header[122])*16 + 0xD000
+	}
+	if header[123] > 0 {
+		h.Sid3Address = uint16(header[123])*16 + 0xD000
 	}
 	return h
 }
