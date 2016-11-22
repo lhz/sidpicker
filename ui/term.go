@@ -36,40 +36,17 @@ func Run() {
 			case termbox.KeyCtrlC, termbox.KeyEsc:
 				quit = true
 			case termbox.KeyPgup:
-				listOffset -= h
-				if listOffset < 0 {
-					listOffset = 0
-				}
-				draw()
+				pageUp()
 			case termbox.KeyPgdn:
-				listOffset += h
-				if listOffset > hvsc.NumTunes-1 {
-					listOffset = hvsc.NumTunes - 1
-				}
-				draw()
+				pageDown()
 			case termbox.KeyArrowUp:
-				listPos--
-				if listPos < 0 {
-					listPos = h - 1
-					listOffset -= h
-					if listOffset < 0 {
-						listOffset = 0
-					}
-				}
-				draw()
+				moveUp()
 			case termbox.KeyArrowDown:
-				listPos++
-				if listPos >= h {
-					listPos = 0
-					listOffset += h
-					if listOffset > hvsc.NumTunes-1 {
-						listOffset = hvsc.NumTunes - 1
-					}
-				}
-				draw()
+				moveDown()
 			case termbox.KeyEnter:
-				player.Play(hvsc.Tunes[listOffset + listPos].FullPath(), 1)
+				selectTune()
 			}
+			draw()
 		case termbox.EventResize:
 			w, h = ev.Width, ev.Height
 			draw()
@@ -77,6 +54,40 @@ func Run() {
 			panic(ev.Err)
 		}
 	}
+}
+
+func moveUp() {
+	listPos--
+	if listPos < 0 {
+		listPos = h - 1
+		pageUp()
+	}
+}
+
+func moveDown() {
+	listPos++
+	if listPos >= h {
+		listPos = 0
+		pageDown()
+	}
+}
+
+func pageUp() {
+	listOffset -= h
+	if listOffset < 0 {
+		listOffset = 0
+	}
+}
+
+func pageDown() {
+	listOffset += h
+	if listOffset > hvsc.NumTunes-1 {
+		listOffset = hvsc.NumTunes - 1
+	}
+}
+
+func selectTune() {
+	player.Play(hvsc.Tunes[listOffset+listPos].FullPath(), 1)
 }
 
 func draw() {
