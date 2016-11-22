@@ -10,7 +10,7 @@ import (
 )
 
 var w, h int
-var listOffset, listPos int
+var listOffset, listPos, lh, ly int
 
 func Setup() {
 	err := termbox.Init()
@@ -21,6 +21,8 @@ func Setup() {
 	w, h = termbox.Size()
 	listOffset = 0
 	listPos = 0
+	ly = 1
+	lh = h - 2
 
 	termbox.SetInputMode(termbox.InputEsc | termbox.InputMouse)
 	draw()
@@ -59,30 +61,34 @@ func Run() {
 func moveUp() {
 	listPos--
 	if listPos < 0 {
-		listPos = h - 1
-		pageUp()
+		if listOffset > 0 {
+			listPos = lh - 1
+			pageUp()
+		} else {
+			listPos = 0
+		}
 	}
 }
 
 func moveDown() {
 	listPos++
-	if listPos >= h {
+	if listPos >= lh {
 		listPos = 0
 		pageDown()
 	}
 }
 
 func pageUp() {
-	listOffset -= h
+	listOffset -= lh
 	if listOffset < 0 {
 		listOffset = 0
 	}
 }
 
 func pageDown() {
-	listOffset += h
+	listOffset += lh
 	if listOffset > hvsc.NumTunes-1 {
-		listOffset = hvsc.NumTunes - 1
+		listOffset -= lh
 	}
 }
 
@@ -92,19 +98,34 @@ func selectTune() {
 
 func draw() {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	for y := 0; y < h; y++ {
+	drawHeader()
+	drawList()
+	drawFooter()
+	termbox.Flush()
+}
+
+func drawHeader() {
+	header := fmt.Sprintf(fmt.Sprintf("%%%ds", w), "")
+	writeAt(0, 0, header, termbox.ColorWhite, termbox.ColorBlack)
+}
+
+func drawFooter() {
+	footer := fmt.Sprintf("%d/%d", listOffset+listPos+1, hvsc.NumTunes)
+	footer = fmt.Sprintf(fmt.Sprintf("%%s%%%ds", w-len(footer)), footer, "")
+	writeAt(0, h-1, footer, termbox.ColorWhite, termbox.ColorBlack)
+}
+
+func drawList() {
+	for y := 0; y < lh; y++ {
 		tune := hvsc.Tunes[y+listOffset]
+		fg := termbox.ColorDefault
 		bg := termbox.ColorDefault
 		if y == listPos {
-			bg = termbox.ColorBlack
+			fg = termbox.ColorDefault | termbox.AttrBold
+			bg = termbox.ColorBlue
 		}
-		writeAt(0, y, fmt.Sprintf("%05d", y+listOffset+1), termbox.ColorRed, termbox.ColorDefault)
-		writeAt(12, y, tune.Header.Name, termbox.ColorBlue, bg)
-		writeAt(45, y, tune.Header.Author, termbox.ColorGreen, bg)
-		writeAt(78, y, tune.Header.Released, termbox.ColorYellow, bg)
-		writeAt(112, y, tune.Path, termbox.ColorDefault, bg)
+		writeAt(0, ly+y, tune.Path, fg, bg)
 	}
-	termbox.Flush()
 }
 
 func writeAt(x, y int, value string, fg, bg termbox.Attribute) {
