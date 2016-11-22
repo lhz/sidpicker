@@ -46,6 +46,10 @@ type SidTune struct {
 	Header      SidHeader
 }
 
+func (tune *SidTune) FullPath() string {
+	return fmt.Sprintf("%s/%s", config.Config.HvscPath, tune.Path)
+}
+
 var Tunes = make([]SidTune, 0)
 var NumTunes = 0
 

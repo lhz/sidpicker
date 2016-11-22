@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/lhz/considerate/hvsc"
+	"github.com/lhz/considerate/player"
 	"github.com/nsf/termbox-go"
 )
 
@@ -45,6 +46,8 @@ func Run() {
 					listOffset = hvsc.NumTunes - 1
 				}
 				draw()
+			case termbox.KeyEnter:
+				player.Play(hvsc.Tunes[listOffset].FullPath(), 1)
 			}
 		case termbox.EventResize:
 			w, h = ev.Width, ev.Height

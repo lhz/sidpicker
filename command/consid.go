@@ -17,10 +17,8 @@ func main() {
 
 	player.Setup()
 
-	player.MsgChan <- "make some noise!"
-
 	ui.Setup()
 	ui.Run()
 
-	player.MsgChan <- "quit"
+	player.Quit()
 }
