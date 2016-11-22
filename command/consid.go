@@ -21,4 +21,5 @@ func main() {
 	ui.Run()
 
 	player.Quit()
+	// FIXME: Wait for quit message to be read and processed
 }

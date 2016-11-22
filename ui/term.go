@@ -10,7 +10,7 @@ import (
 )
 
 var w, h int
-var listOffset int
+var listOffset, listPos int
 
 func Setup() {
 	err := termbox.Init()
@@ -20,6 +20,7 @@ func Setup() {
 
 	w, h = termbox.Size()
 	listOffset = 0
+	listPos = 0
 
 	termbox.SetInputMode(termbox.InputEsc | termbox.InputMouse)
 	draw()
@@ -46,8 +47,28 @@ func Run() {
 					listOffset = hvsc.NumTunes - 1
 				}
 				draw()
+			case termbox.KeyArrowUp:
+				listPos--
+				if listPos < 0 {
+					listPos = h - 1
+					listOffset -= h
+					if listOffset < 0 {
+						listOffset = 0
+					}
+				}
+				draw()
+			case termbox.KeyArrowDown:
+				listPos++
+				if listPos >= h {
+					listPos = 0
+					listOffset += h
+					if listOffset > hvsc.NumTunes-1 {
+						listOffset = hvsc.NumTunes - 1
+					}
+				}
+				draw()
 			case termbox.KeyEnter:
-				player.Play(hvsc.Tunes[listOffset].FullPath(), 1)
+				player.Play(hvsc.Tunes[listOffset + listPos].FullPath(), 1)
 			}
 		case termbox.EventResize:
 			w, h = ev.Width, ev.Height
@@ -62,11 +83,15 @@ func draw() {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 	for y := 0; y < h; y++ {
 		tune := hvsc.Tunes[y+listOffset]
+		bg := termbox.ColorDefault
+		if y == listPos {
+			bg = termbox.ColorBlack
+		}
 		writeAt(0, y, fmt.Sprintf("%05d", y+listOffset+1), termbox.ColorRed, termbox.ColorDefault)
-		writeAt(12, y, tune.Header.Name, termbox.ColorBlue, termbox.ColorDefault)
-		writeAt(45, y, tune.Header.Author, termbox.ColorGreen, termbox.ColorDefault)
-		writeAt(78, y, tune.Header.Released, termbox.ColorYellow, termbox.ColorDefault)
-		writeAt(112, y, tune.Path, termbox.ColorDefault, termbox.ColorDefault)
+		writeAt(12, y, tune.Header.Name, termbox.ColorBlue, bg)
+		writeAt(45, y, tune.Header.Author, termbox.ColorGreen, bg)
+		writeAt(78, y, tune.Header.Released, termbox.ColorYellow, bg)
+		writeAt(112, y, tune.Path, termbox.ColorDefault, bg)
 	}
 	termbox.Flush()
 }

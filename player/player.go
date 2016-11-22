@@ -31,12 +31,14 @@ func Run() {
 	for {
 		select {
 		case msg := <-MsgChan:
-			log.Printf("Player got message %v.", msg)
+			//log.Printf("Player got message %v.", msg)
 			if msg.Command == QUIT_COMMAND {
 				if playCmd != nil {
-					if err := playCmd.Process.Kill(); err != nil {
-						log.Print("Failed to kill player process: ", err)
-					}
+					playCmd.Process.Signal(os.Interrupt)
+					playCmd.Wait()
+					// if err := playCmd.Process.Kill(); err != nil {
+					// 	log.Print("Failed to kill player process: ", err)
+					// }
 				}
 			}
 			if msg.Command == PLAY_COMMAND {
