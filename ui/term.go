@@ -9,8 +9,15 @@ import (
 	"github.com/nsf/termbox-go"
 )
 
+const (
+	MODE_BROWSE = iota
+	MODE_SEARCH
+)
+
 var w, h int
 var listOffset, listPos, lh, ly int
+var mode int
+var searchTerm, debugInfo string
 
 func Setup() {
 	err := termbox.Init()
@@ -31,7 +38,10 @@ func Setup() {
 func Run() {
 	defer termbox.Close()
 
+	mode = MODE_BROWSE
+
 	for quit := false; !quit; {
+		debugInfo = ""
 		switch ev := termbox.PollEvent(); ev.Type {
 		case termbox.EventKey:
 			switch ev.Key {
@@ -46,7 +56,28 @@ func Run() {
 			case termbox.KeyArrowDown:
 				moveDown()
 			case termbox.KeyEnter:
-				selectTune()
+				switch mode {
+				case MODE_BROWSE:
+					selectTune()
+				case MODE_SEARCH:
+					hvsc.Filter(searchTerm)
+					listOffset = 0
+					listPos = 0
+					mode = MODE_BROWSE
+				}
+			default:
+				switch ev.Ch {
+				case '/':
+					switch mode {
+					case MODE_BROWSE:
+						mode = MODE_SEARCH
+						searchTerm = ""
+					}
+				default:
+					if mode == MODE_SEARCH {
+						searchTerm = searchTerm + string(ev.Ch)
+					}
+				}
 			}
 			draw()
 		case termbox.EventResize:
@@ -71,6 +102,9 @@ func moveUp() {
 }
 
 func moveDown() {
+	if listOffset+listPos == hvsc.NumFilteredTunes-1 {
+		return
+	}
 	listPos++
 	if listPos >= lh {
 		listPos = 0
@@ -87,13 +121,13 @@ func pageUp() {
 
 func pageDown() {
 	listOffset += lh
-	if listOffset > hvsc.NumTunes-1 {
+	if listOffset > hvsc.NumFilteredTunes-1 {
 		listOffset -= lh
 	}
 }
 
 func selectTune() {
-	player.Play(hvsc.Tunes[listOffset+listPos].FullPath(), 1)
+	player.Play(hvsc.FilteredTunes[listOffset+listPos].FullPath(), 1)
 }
 
 func draw() {
@@ -105,19 +139,31 @@ func draw() {
 }
 
 func drawHeader() {
-	header := fmt.Sprintf(fmt.Sprintf("%%%ds", w), "")
-	writeAt(0, 0, header, termbox.ColorWhite, termbox.ColorBlack)
+	var header string
+	bg := termbox.ColorBlack
+	switch mode {
+	case MODE_BROWSE:
+		header = "Browse"
+	case MODE_SEARCH:
+		header = fmt.Sprintf("Search: %s_", searchTerm)
+		bg = termbox.ColorGreen
+	}
+	header = fmt.Sprintf(fmt.Sprintf("%%s%%%ds", w-len(header)), header, "")
+	writeAt(0, 0, header, termbox.ColorWhite, bg)
 }
 
 func drawFooter() {
-	footer := fmt.Sprintf("%d/%d", listOffset+listPos+1, hvsc.NumTunes)
+	footer := fmt.Sprintf("%d/%d  %s", listOffset+listPos+1, hvsc.NumFilteredTunes, debugInfo)
 	footer = fmt.Sprintf(fmt.Sprintf("%%s%%%ds", w-len(footer)), footer, "")
 	writeAt(0, h-1, footer, termbox.ColorWhite, termbox.ColorBlack)
 }
 
 func drawList() {
 	for y := 0; y < lh; y++ {
-		tune := hvsc.Tunes[y+listOffset]
+		if y+listOffset >= hvsc.NumFilteredTunes {
+			break
+		}
+		tune := hvsc.FilteredTunes[y+listOffset]
 		fg := termbox.ColorDefault
 		bg := termbox.ColorDefault
 		if y == listPos {

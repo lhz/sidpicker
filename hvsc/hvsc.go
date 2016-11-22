@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/lhz/considerate/config"
@@ -53,6 +54,9 @@ func (tune *SidTune) FullPath() string {
 var Tunes = make([]SidTune, 0)
 var NumTunes = 0
 
+var FilteredTunes = make([]SidTune, 0)
+var NumFilteredTunes = 0
+
 var header = make([]byte, 124)
 
 // Read tunes data from cache file
@@ -70,6 +74,8 @@ func ReadTunesInfoCached() {
 
 	json.Unmarshal(content, &Tunes)
 	NumTunes = len(Tunes)
+	FilteredTunes = Tunes
+	NumFilteredTunes = NumTunes
 }
 
 // Build tunes data from .sid-files and various documents
@@ -96,6 +102,8 @@ func ReadTunesInfo() {
 	}
 
 	NumTunes = len(Tunes)
+	FilteredTunes = Tunes
+	NumFilteredTunes = NumTunes
 
 	b, err := json.MarshalIndent(Tunes, "", "  ")
 	if err != nil {
@@ -148,6 +156,16 @@ func ReadSidHeader(fileName string) SidHeader {
 		h.Sid3Address = uint16(header[123])*16 + 0xD000
 	}
 	return h
+}
+
+func Filter(term string) {
+	FilteredTunes = make([]SidTune, 0)
+	for _, tune := range Tunes {
+		if strings.Contains(tune.Header.Author, term) {
+			FilteredTunes = append(FilteredTunes, tune)
+		}
+	}
+	NumFilteredTunes = len(FilteredTunes)
 }
 
 func stringExtract(slice []byte) string {
