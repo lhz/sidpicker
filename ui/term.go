@@ -65,6 +65,10 @@ func Run() {
 					listPos = 0
 					mode = MODE_BROWSE
 				}
+			case termbox.KeyDelete:
+				if mode == MODE_BROWSE {
+					stopTune()
+				}
 			case 0:
 				switch ev.Ch {
 				case '/':
@@ -138,10 +142,15 @@ func selectTune() {
 	player.Play(listOffset+listPos, 1)
 }
 
+func stopTune() {
+	player.Stop()
+}
+
 func draw() {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 	drawHeader()
 	drawList()
+	drawTuneInfo()
 	drawFooter()
 	termbox.Flush()
 }
@@ -169,9 +178,18 @@ func drawFooter() {
 }
 
 func drawTuneInfo() {
-	if player.CurrentTune == nil {
+	if !player.Playing {
 		return
 	}
+	tune := player.CurrentTune
+	ox := w - 80
+	oy := 2
+	fg := termbox.ColorDefault
+	bg := termbox.ColorDefault
+
+	writeAt(ox, oy+0, fmt.Sprintf("Title:    %s", tune.Header.Name), fg, bg)
+	writeAt(ox, oy+1, fmt.Sprintf("Author:   %s", tune.Header.Author), fg, bg)
+	writeAt(ox, oy+2, fmt.Sprintf("Released: %s", tune.Header.Released), fg, bg)
 }
 
 func drawList() {

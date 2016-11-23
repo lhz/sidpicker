@@ -23,6 +23,7 @@ type PlayerMsg struct {
 
 var CurrentTune *hvsc.SidTune
 var MsgChan chan PlayerMsg
+var Playing = false
 
 func Run() {
 	MsgChan = make(chan PlayerMsg)
@@ -53,14 +54,17 @@ func Play(index, subTune int) {
 	Stop()
 	tune := hvsc.FilteredTunes[index]
 	CurrentTune = &tune
+	Playing = true
 	MsgChan <- PlayerMsg{Command: PLAY_COMMAND, Args: []string{tune.FullPath(), strconv.Itoa(subTune)}}
 }
 
 func Stop() {
+	Playing = false
 	MsgChan <- PlayerMsg{Command: STOP_COMMAND, Args: []string{}}
 }
 
 func Quit() {
+	Playing = false
 	MsgChan <- PlayerMsg{Command: QUIT_COMMAND, Args: []string{}}
 }
 
