@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-	"sync"
 
 	"github.com/lhz/considerate/hvsc"
 	//"io/ioutil"
@@ -22,18 +21,11 @@ type PlayerMsg struct {
 	Args    []string
 }
 
-var CurrentIndex int
+var CurrentTune *hvsc.SidTune
 var MsgChan chan PlayerMsg
 
-func Setup(wg *sync.WaitGroup) {
-	CurrentIndex = -1
+func Run() {
 	MsgChan = make(chan PlayerMsg)
-	go Run(wg)
-}
-
-func Run(wg *sync.WaitGroup) {
-	wg.Add(1)
-	defer wg.Done()
 
 	var playCmd *exec.Cmd
 
@@ -60,7 +52,7 @@ func Run(wg *sync.WaitGroup) {
 func Play(index, subTune int) {
 	Stop()
 	tune := hvsc.FilteredTunes[index]
-	CurrentIndex = tune.Index
+	CurrentTune = &tune
 	MsgChan <- PlayerMsg{Command: PLAY_COMMAND, Args: []string{tune.FullPath(), strconv.Itoa(subTune)}}
 }
 

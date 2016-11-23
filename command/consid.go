@@ -18,7 +18,11 @@ func main() {
 	hvsc.ReadTunesInfoCached()
 	log.Printf("Read %d tunes.", hvsc.NumTunes)
 
-	player.Setup(&workerGroup)
+	workerGroup.Add(1)
+	go func() {
+		defer workerGroup.Done()
+		player.Run()
+	}()
 
 	ui.Setup()
 	ui.Run()

@@ -168,6 +168,12 @@ func drawFooter() {
 	writeAt(0, h-1, footer, termbox.ColorWhite, termbox.ColorBlack)
 }
 
+func drawTuneInfo() {
+	if player.CurrentTune == nil {
+		return
+	}
+}
+
 func drawList() {
 	for y := 0; y < lh; y++ {
 		if y+listOffset >= hvsc.NumFilteredTunes {
@@ -176,7 +182,7 @@ func drawList() {
 		tune := hvsc.FilteredTunes[y+listOffset]
 		fg := termbox.ColorDefault
 		bg := termbox.ColorDefault
-		if tune.Index == player.CurrentIndex {
+		if player.CurrentTune != nil && player.CurrentTune.Index == tune.Index {
 			fg |= termbox.AttrBold
 		}
 		if y == listPos {
