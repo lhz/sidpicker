@@ -65,7 +65,7 @@ func Run() {
 					listPos = 0
 					mode = MODE_BROWSE
 				}
-			default:
+			case 0:
 				switch ev.Ch {
 				case '/':
 					switch mode {
@@ -78,6 +78,14 @@ func Run() {
 						searchTerm = searchTerm + string(ev.Ch)
 					}
 				}
+			case 0x7F:
+				if mode == MODE_SEARCH {
+					if len(searchTerm) > 0 {
+						searchTerm = searchTerm[0 : len(searchTerm)-1]
+					}
+				}
+			default:
+				debugInfo = string(ev.Key)
 			}
 			draw()
 		case termbox.EventResize:
@@ -144,9 +152,11 @@ func drawHeader() {
 	switch mode {
 	case MODE_BROWSE:
 		header = "Browse"
+		termbox.HideCursor()
 	case MODE_SEARCH:
-		header = fmt.Sprintf("Search: %s_", searchTerm)
-		bg = termbox.ColorGreen
+		header = fmt.Sprintf("Search: %s", searchTerm)
+		//bg = termbox.ColorGreen
+		termbox.SetCursor(8+len(searchTerm), 0)
 	}
 	header = fmt.Sprintf(fmt.Sprintf("%%s%%%ds", w-len(header)), header, "")
 	writeAt(0, 0, header, termbox.ColorWhite, bg)
@@ -172,8 +182,12 @@ func drawList() {
 		if y == listPos {
 			bg = termbox.ColorBlue
 		}
-		writeAt(0, ly+y, tune.Path[1:len(tune.Path)-4], fg, bg)
+		writeAt(0, ly+y, listName(tune), fg, bg)
 	}
+}
+
+func listName(tune hvsc.SidTune) string {
+	return fmt.Sprintf("%4s %s", tune.Year(), tune.Path[1:len(tune.Path)-4])
 }
 
 func writeAt(x, y int, value string, fg, bg termbox.Attribute) {

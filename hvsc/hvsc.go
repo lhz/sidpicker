@@ -52,6 +52,10 @@ func (tune *SidTune) FullPath() string {
 	return fmt.Sprintf("%s/%s", config.Config.HvscPath, tune.Path)
 }
 
+func (tune *SidTune) Year() string {
+	return tune.Header.Released[0:4]
+}
+
 var Tunes = make([]SidTune, 0)
 var NumTunes = 0
 
