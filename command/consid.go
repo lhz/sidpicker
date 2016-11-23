@@ -7,7 +7,10 @@ import (
 	"github.com/lhz/considerate/ui"
 
 	"log"
+	"sync"
 )
+
+var workerGroup sync.WaitGroup
 
 func main() {
 	config.ReadConfig()
@@ -15,11 +18,12 @@ func main() {
 	hvsc.ReadTunesInfoCached()
 	log.Printf("Read %d tunes.", hvsc.NumTunes)
 
-	player.Setup()
+	player.Setup(&workerGroup)
 
 	ui.Setup()
 	ui.Run()
 
 	player.Quit()
-	// FIXME: Wait for quit message to be read and processed
+
+	workerGroup.Wait()
 }
