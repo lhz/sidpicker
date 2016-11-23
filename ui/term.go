@@ -46,6 +46,7 @@ func Run() {
 		case termbox.EventKey:
 			switch ev.Key {
 			case termbox.KeyCtrlC, termbox.KeyEsc:
+				stopTune()
 				quit = true
 			case termbox.KeyPgup:
 				pageUp()
