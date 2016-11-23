@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+
+	"github.com/lhz/considerate/hvsc"
 	//"io/ioutil"
 )
 
@@ -18,10 +20,11 @@ type PlayerMsg struct {
 	Args    []string
 }
 
-
+var CurrentIndex int
 var MsgChan chan PlayerMsg
 
 func Setup() {
+	CurrentIndex = -1
 	MsgChan = make(chan PlayerMsg)
 	go Run()
 }
@@ -53,9 +56,11 @@ func Run() {
 	playCmd.Process.Kill()
 }
 
-func Play(path string, subTune int) {
+func Play(index, subTune int) {
 	Quit()
-	MsgChan <- PlayerMsg{Command: PLAY_COMMAND, Args: []string{path, strconv.Itoa(subTune)}}
+	tune := hvsc.FilteredTunes[index]
+	CurrentIndex = tune.Index
+	MsgChan <- PlayerMsg{Command: PLAY_COMMAND, Args: []string{tune.FullPath(), strconv.Itoa(subTune)}}
 }
 
 func Quit() {

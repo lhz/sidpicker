@@ -127,7 +127,7 @@ func pageDown() {
 }
 
 func selectTune() {
-	player.Play(hvsc.FilteredTunes[listOffset+listPos].FullPath(), 1)
+	player.Play(listOffset+listPos, 1)
 }
 
 func draw() {
@@ -166,11 +166,13 @@ func drawList() {
 		tune := hvsc.FilteredTunes[y+listOffset]
 		fg := termbox.ColorDefault
 		bg := termbox.ColorDefault
+		if tune.Index == player.CurrentIndex {
+			fg |= termbox.AttrBold
+		}
 		if y == listPos {
-			fg = termbox.ColorDefault | termbox.AttrBold
 			bg = termbox.ColorBlue
 		}
-		writeAt(0, ly+y, tune.Path, fg, bg)
+		writeAt(0, ly+y, tune.Path[1:len(tune.Path)-4], fg, bg)
 	}
 }
 

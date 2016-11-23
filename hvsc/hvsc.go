@@ -40,6 +40,7 @@ type SidHeader struct {
 }
 
 type SidTune struct {
+	Index       int
 	Path        string
 	MD5         string
 	NumSongs    int
@@ -91,7 +92,7 @@ func ReadTunesInfo() {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line[0] == ';' {
-			tune := SidTune{Path: line[2:]}
+			tune := SidTune{Index: len(Tunes), Path: line[2:]}
 			tune.Header = ReadSidHeader(hvscPathTo(tune.Path))
 			Tunes = append(Tunes, tune)
 		}
