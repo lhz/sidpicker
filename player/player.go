@@ -1,10 +1,12 @@
 package player
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"strconv"
+	"time"
 
 	"github.com/lhz/considerate/hvsc"
 	//"io/ioutil"
@@ -22,6 +24,7 @@ type PlayerMsg struct {
 }
 
 var CurrentTune *hvsc.SidTune
+var StartTime time.Time
 var MsgChan chan PlayerMsg
 var Playing = false
 
@@ -40,6 +43,7 @@ func Run() {
 				if err := playCmd.Start(); err != nil {
 					log.Print("Failed to start player process: ", err)
 				}
+				StartTime = time.Now()
 			case STOP_COMMAND:
 				stopCommand(playCmd)
 			case QUIT_COMMAND:
@@ -66,6 +70,14 @@ func Stop() {
 func Quit() {
 	Playing = false
 	MsgChan <- PlayerMsg{Command: QUIT_COMMAND, Args: []string{}}
+}
+
+func Elapsed() string {
+	duration := time.Since(StartTime)
+	seconds := int(duration.Seconds())
+	s := seconds % 60
+	m := seconds / 60
+	return fmt.Sprintf("%02d:%02d", m, s)
 }
 
 func stopCommand(cmd *exec.Cmd) {

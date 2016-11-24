@@ -18,6 +18,7 @@ var w, h int
 var listOffset, listPos, lh, ly int
 var mode int
 var searchTerm, debugInfo string
+var quit = false
 
 func Setup() {
 	err := termbox.Init()
@@ -40,65 +41,83 @@ func Run() {
 
 	mode = MODE_BROWSE
 
-	for quit := false; !quit; {
-		debugInfo = ""
-		switch ev := termbox.PollEvent(); ev.Type {
-		case termbox.EventKey:
-			switch ev.Key {
-			case termbox.KeyCtrlC, termbox.KeyEsc:
-				stopTune()
-				quit = true
-			case termbox.KeyPgup:
-				pageUp()
-			case termbox.KeyPgdn:
-				pageDown()
-			case termbox.KeyArrowUp:
-				moveUp()
-			case termbox.KeyArrowDown:
-				moveDown()
-			case termbox.KeyEnter:
-				switch mode {
-				case MODE_BROWSE:
-					selectTune()
-				case MODE_SEARCH:
-					hvsc.Filter(searchTerm)
-					listOffset = 0
-					listPos = 0
-					mode = MODE_BROWSE
-				}
-			case termbox.KeyDelete:
-				if mode == MODE_BROWSE {
-					stopTune()
-				}
-			case 0:
-				switch ev.Ch {
-				case '/':
-					switch mode {
-					case MODE_BROWSE:
-						mode = MODE_SEARCH
-						searchTerm = ""
-					}
-				default:
-					if mode == MODE_SEARCH {
-						searchTerm = searchTerm + string(ev.Ch)
-					}
-				}
-			case 0x7F:
-				if mode == MODE_SEARCH {
-					if len(searchTerm) > 0 {
-						searchTerm = searchTerm[0 : len(searchTerm)-1]
-					}
-				}
-			default:
-				debugInfo = string(ev.Key)
-			}
-			draw()
-		case termbox.EventResize:
-			w, h = ev.Width, ev.Height
-			draw()
-		case termbox.EventError:
-			panic(ev.Err)
+	eventQueue := make(chan termbox.Event)
+	go func() {
+		for {
+			eventQueue <- termbox.PollEvent()
 		}
+	}()
+
+	for !quit {
+		debugInfo = ""
+		select {
+		case ev := <-eventQueue:
+			switch ev.Type {
+			case termbox.EventKey:
+				keyEvent(ev)
+			case termbox.EventResize:
+				resizeEvent(ev)
+			case termbox.EventError:
+				panic(ev.Err)
+			}
+		}
+		draw()
+	}
+}
+
+func resizeEvent(ev termbox.Event) {
+	w, h = ev.Width, ev.Height
+	draw()
+}
+
+func keyEvent(ev termbox.Event) {
+	switch ev.Key {
+	case termbox.KeyCtrlC, termbox.KeyEsc:
+		stopTune()
+		quit = true
+	case termbox.KeyPgup:
+		pageUp()
+	case termbox.KeyPgdn:
+		pageDown()
+	case termbox.KeyArrowUp:
+		moveUp()
+	case termbox.KeyArrowDown:
+		moveDown()
+	case termbox.KeyEnter:
+		switch mode {
+		case MODE_BROWSE:
+			selectTune()
+		case MODE_SEARCH:
+			hvsc.Filter(searchTerm)
+			listOffset = 0
+			listPos = 0
+			mode = MODE_BROWSE
+		}
+	case termbox.KeyDelete:
+		if mode == MODE_BROWSE {
+			stopTune()
+		}
+	case 0:
+		switch ev.Ch {
+		case '/':
+			switch mode {
+			case MODE_BROWSE:
+				mode = MODE_SEARCH
+				searchTerm = ""
+			}
+		default:
+			if mode == MODE_SEARCH {
+				searchTerm = searchTerm + string(ev.Ch)
+			}
+		}
+	case 0x7F:
+		if mode == MODE_SEARCH {
+			if len(searchTerm) > 0 {
+				searchTerm = searchTerm[0 : len(searchTerm)-1]
+			}
+		}
+	default:
+		debugInfo = string(ev.Key)
 	}
 }
 
@@ -191,6 +210,8 @@ func drawTuneInfo() {
 	writeAt(ox, oy+0, fmt.Sprintf("Title:    %s", tune.Header.Name), fg, bg)
 	writeAt(ox, oy+1, fmt.Sprintf("Author:   %s", tune.Header.Author), fg, bg)
 	writeAt(ox, oy+2, fmt.Sprintf("Released: %s", tune.Header.Released), fg, bg)
+
+	writeAt(ox, oy+4, fmt.Sprintf("Tune: %d/%d  Time: %s", tune.Header.StartSong, tune.Header.Songs, player.Elapsed()), fg, bg)
 }
 
 func drawList() {
