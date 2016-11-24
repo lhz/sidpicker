@@ -58,14 +58,18 @@ func Run() {
 			switch ev.Type {
 			case termbox.EventKey:
 				keyEvent(ev)
+				draw()
 			case termbox.EventResize:
 				resizeEvent(ev)
+				draw()
 			case termbox.EventError:
 				panic(ev.Err)
 			}
 		case <-tickChan:
+			if player.Playing {
+				draw()
+			}
 		}
-		draw()
 	}
 }
 
