@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/lhz/considerate/hvsc"
-	//"io/ioutil"
 )
 
 const (
@@ -39,12 +38,12 @@ func Run() {
 		case msg := <-MsgChan:
 			switch msg.Command {
 			case PLAY_COMMAND:
+				StartTime = time.Now()
 				playCmd = exec.Command("/usr/bin/sidplay2", "-o"+msg.Args[1], msg.Args[0])
 				playCmd.Stdout = os.Stdout
 				if err := playCmd.Start(); err != nil {
 					log.Print("Failed to start player process: ", err)
 				}
-				StartTime = time.Now()
 			case STOP_COMMAND:
 				stopCommand(playCmd)
 			case QUIT_COMMAND:
