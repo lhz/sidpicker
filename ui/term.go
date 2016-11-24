@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/lhz/considerate/hvsc"
 	"github.com/lhz/considerate/player"
@@ -41,17 +42,19 @@ func Run() {
 
 	mode = MODE_BROWSE
 
-	eventQueue := make(chan termbox.Event)
+	tickChan := time.NewTicker(1 * time.Second).C
+
+	eventChan := make(chan termbox.Event)
 	go func() {
 		for {
-			eventQueue <- termbox.PollEvent()
+			eventChan <- termbox.PollEvent()
 		}
 	}()
 
 	for !quit {
 		debugInfo = ""
 		select {
-		case ev := <-eventQueue:
+		case ev := <-eventChan:
 			switch ev.Type {
 			case termbox.EventKey:
 				keyEvent(ev)
@@ -60,6 +63,7 @@ func Run() {
 			case termbox.EventError:
 				panic(ev.Err)
 			}
+		case <-tickChan:
 		}
 		draw()
 	}
