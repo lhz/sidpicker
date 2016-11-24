@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -43,7 +44,6 @@ type SidTune struct {
 	Index       int
 	Path        string
 	MD5         string
-	NumSongs    int
 	SongLengths []time.Duration
 	Header      SidHeader
 }
@@ -91,6 +91,8 @@ func ReadTunesInfo() {
 	}
 	defer file.Close()
 
+	lr := regexp.MustCompile("[0-9]{1,2}:[0-9]{2}")
+
 	log.Print("Building tunes info cache.")
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -98,7 +100,13 @@ func ReadTunesInfo() {
 		if line[0] == ';' {
 			tune := SidTune{Index: len(Tunes), Path: line[2:]}
 			tune.Header = ReadSidHeader(hvscPathTo(tune.Path))
+			tune.SongLengths = make([]time.Duration, tune.Header.Songs)
 			Tunes = append(Tunes, tune)
+		} else {
+			lengths := lr.FindAllString(line, -1)
+			for i, l := range lengths {
+				Tunes[len(Tunes)-1].SongLengths[i] = parseSongLength(l)
+			}
 		}
 	}
 
@@ -184,4 +192,13 @@ func stringExtract(slice []byte) string {
 
 func hvscPathTo(filePath string) string {
 	return fmt.Sprintf("%s/%s", config.Config.HvscPath, filePath)
+}
+
+func parseSongLength(value string) time.Duration {
+	parts := strings.Split(value, ":")
+	dur, err := time.ParseDuration(fmt.Sprintf("%sm%ss", parts[0], parts[1]))
+	if err != nil {
+		return 0
+	}
+	return dur
 }

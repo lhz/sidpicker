@@ -98,7 +98,6 @@ func Elapsed() string {
 }
 
 func SongLength() string {
-	return "??:??"
 	if CurrentTune == nil || CurrentSong < 1 {
 		return ""
 	}
