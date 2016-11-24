@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/lhz/considerate/hvsc"
@@ -79,9 +80,13 @@ func resizeEvent(ev termbox.Event) {
 }
 
 func keyEvent(ev termbox.Event) {
+	if mode == MODE_SEARCH {
+		keyEventSearch(ev)
+		return
+	}
 	switch ev.Key {
 	case termbox.KeyCtrlC, termbox.KeyEsc:
-		stopTune()
+		player.Stop()
 		quit = true
 	case termbox.KeyPgup:
 		pageUp()
@@ -91,38 +96,43 @@ func keyEvent(ev termbox.Event) {
 		moveUp()
 	case termbox.KeyArrowDown:
 		moveDown()
+	case termbox.KeyArrowLeft:
+		player.PrevSong()
+	case termbox.KeyArrowRight:
+		player.NextSong()
 	case termbox.KeyEnter:
-		switch mode {
-		case MODE_BROWSE:
-			selectTune()
-		case MODE_SEARCH:
-			hvsc.Filter(searchTerm)
-			listOffset = 0
-			listPos = 0
-			mode = MODE_BROWSE
-		}
+		player.Play(listOffset+listPos, 1)
 	case termbox.KeyDelete:
-		if mode == MODE_BROWSE {
-			stopTune()
-		}
+		player.Stop()
 	case 0:
-		switch ev.Ch {
-		case '/':
-			switch mode {
-			case MODE_BROWSE:
-				mode = MODE_SEARCH
-				searchTerm = ""
+		if n := strings.IndexRune("0123456789", ev.Ch); n > 0 {
+			if n <= player.CurrentTune.Header.Songs {
+				player.PlaySub(n)
 			}
-		default:
-			if mode == MODE_SEARCH {
-				searchTerm = searchTerm + string(ev.Ch)
-			}
+			return
 		}
+		if ev.Ch == '/' {
+			searchTerm = ""
+			mode = MODE_SEARCH
+		}
+	default:
+		debugInfo = string(ev.Key)
+	}
+}
+
+func keyEventSearch(ev termbox.Event) {
+	switch ev.Key {
+	case termbox.KeyCtrlC, termbox.KeyEsc:
+	case termbox.KeyEnter:
+		hvsc.Filter(searchTerm)
+		listOffset = 0
+		listPos = 0
+		mode = MODE_BROWSE
+	case 0:
+		searchTerm = searchTerm + string(ev.Ch)
 	case 0x7F:
-		if mode == MODE_SEARCH {
-			if len(searchTerm) > 0 {
-				searchTerm = searchTerm[0 : len(searchTerm)-1]
-			}
+		if len(searchTerm) > 0 {
+			searchTerm = searchTerm[0 : len(searchTerm)-1]
 		}
 	default:
 		debugInfo = string(ev.Key)
@@ -164,14 +174,6 @@ func pageDown() {
 	if listOffset > hvsc.NumFilteredTunes-1 {
 		listOffset -= lh
 	}
-}
-
-func selectTune() {
-	player.Play(listOffset+listPos, 1)
-}
-
-func stopTune() {
-	player.Stop()
 }
 
 func draw() {
@@ -219,7 +221,8 @@ func drawTuneInfo() {
 	writeAt(ox, oy+1, fmt.Sprintf("Author:   %s", tune.Header.Author), fg, bg)
 	writeAt(ox, oy+2, fmt.Sprintf("Released: %s", tune.Header.Released), fg, bg)
 
-	writeAt(ox, oy+4, fmt.Sprintf("Tune: %d/%d  Time: %s", tune.Header.StartSong, tune.Header.Songs, player.Elapsed()), fg, bg)
+	writeAt(ox, oy+4, fmt.Sprintf("Tune: %d/%d  Length: %s  Time: %s",
+		player.CurrentSong, tune.Header.Songs, player.SongLength(), player.Elapsed()), fg, bg)
 }
 
 func drawList() {

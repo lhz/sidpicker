@@ -24,6 +24,7 @@ type PlayerMsg struct {
 }
 
 var CurrentTune *hvsc.SidTune
+var CurrentSong int
 var StartTime time.Time
 var MsgChan chan PlayerMsg
 var Playing = false
@@ -38,7 +39,7 @@ func Run() {
 		case msg := <-MsgChan:
 			switch msg.Command {
 			case PLAY_COMMAND:
-				playCmd = exec.Command("/usr/bin/sidplay2", msg.Args[0])
+				playCmd = exec.Command("/usr/bin/sidplay2", "-o"+msg.Args[1], msg.Args[0])
 				playCmd.Stdout = os.Stdout
 				if err := playCmd.Start(); err != nil {
 					log.Print("Failed to start player process: ", err)
@@ -54,12 +55,32 @@ func Run() {
 	}
 }
 
+func PlaySub(subTune int) {
+	Stop()
+	Playing = true
+	CurrentSong = subTune
+	MsgChan <- PlayerMsg{Command: PLAY_COMMAND, Args: []string{CurrentTune.FullPath(), strconv.Itoa(subTune)}}
+}
+
 func Play(index, subTune int) {
 	Stop()
 	tune := hvsc.FilteredTunes[index]
 	CurrentTune = &tune
+	CurrentSong = subTune
 	Playing = true
 	MsgChan <- PlayerMsg{Command: PLAY_COMMAND, Args: []string{tune.FullPath(), strconv.Itoa(subTune)}}
+}
+
+func PrevSong() {
+	if Playing && CurrentSong > 1 {
+		PlaySub(CurrentSong - 1)
+	}
+}
+
+func NextSong() {
+	if Playing && CurrentSong < CurrentTune.Header.Songs {
+		PlaySub(CurrentSong + 1)
+	}
 }
 
 func Stop() {
@@ -73,11 +94,20 @@ func Quit() {
 }
 
 func Elapsed() string {
-	duration := time.Since(StartTime)
+	return TimeFormat(time.Since(StartTime))
+}
+
+func SongLength() string {
+	return "??:??"
+	if CurrentTune == nil || CurrentSong < 1 {
+		return ""
+	}
+	return TimeFormat(CurrentTune.SongLengths[CurrentSong-1])
+}
+
+func TimeFormat(duration time.Duration) string {
 	seconds := int(duration.Seconds())
-	s := seconds % 60
-	m := seconds / 60
-	return fmt.Sprintf("%02d:%02d", m, s)
+	return fmt.Sprintf("%02d:%02d", seconds/60, seconds%60)
 }
 
 func stopCommand(cmd *exec.Cmd) {
