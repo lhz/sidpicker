@@ -102,6 +102,9 @@ func keyEvent(ev termbox.Event) {
 		player.NextSong()
 	case termbox.KeyEnter:
 		player.Play(listOffset+listPos, 1)
+	case termbox.KeySpace:
+		moveDown()
+		player.Play(listOffset+listPos, 1)
 	case termbox.KeyDelete:
 		player.Stop()
 	case 0:
