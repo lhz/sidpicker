@@ -196,7 +196,7 @@ func drawHeader() {
 	bg := termbox.ColorBlack
 	switch mode {
 	case MODE_BROWSE:
-		header = "Browse"
+		header = fmt.Sprintf("Browse: %s", searchTerm)
 		termbox.HideCursor()
 	case MODE_SEARCH:
 		header = fmt.Sprintf("Search: %s", searchTerm)

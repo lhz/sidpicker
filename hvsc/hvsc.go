@@ -179,31 +179,23 @@ func Filter(terms string) {
 			if len(term) > 1 && term[1] == ':' {
 				prefix := term[0]
 				term = term[2:]
+				value := ""
 				switch prefix {
 				case 'a':
-					if !strings.Contains(tune.Header.Author, term) {
-						exclude = true
-					}
+					value = tune.Header.Author
 				case 'n':
-					if !strings.Contains(tune.Header.Name, term) {
-						exclude = true
-					}
+					value = tune.Header.Name
 				case 'p':
-					if !strings.Contains(tune.Path, term) {
-						exclude = true
-					}
+					value = tune.Path
 				case 'r':
-					if !strings.Contains(tune.Header.Released, term) {
-						exclude = true
-					}
+					value = tune.Header.Released
 				case 't':
-					if !strings.Contains(tune.Header.Name, term) {
-						exclude = true
-					}
+					value = tune.Header.Name
 				case 'y':
-					if !strings.Contains(tune.Year(), term) {
-						exclude = true
-					}
+					value = tune.Year()
+				}
+				if !strings.Contains(strings.ToUpper(value), strings.ToUpper(term)) {
+					exclude = true
 				}
 			} else if !strings.Contains(tune.Header.Author, term) {
 				exclude = true
