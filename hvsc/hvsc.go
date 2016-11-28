@@ -171,10 +171,45 @@ func ReadSidHeader(fileName string) SidHeader {
 	return h
 }
 
-func Filter(term string) {
+func Filter(terms string) {
 	FilteredTunes = make([]SidTune, 0)
 	for _, tune := range Tunes {
-		if strings.Contains(tune.Header.Author, term) {
+		exclude := false
+		for _, term := range strings.Split(terms, " ") {
+			if len(term) > 1 && term[1] == ':' {
+				prefix := term[0]
+				term = term[2:]
+				switch prefix {
+				case 'a':
+					if !strings.Contains(tune.Header.Author, term) {
+						exclude = true
+					}
+				case 'n':
+					if !strings.Contains(tune.Header.Name, term) {
+						exclude = true
+					}
+				case 'p':
+					if !strings.Contains(tune.Path, term) {
+						exclude = true
+					}
+				case 'r':
+					if !strings.Contains(tune.Header.Released, term) {
+						exclude = true
+					}
+				case 't':
+					if !strings.Contains(tune.Header.Name, term) {
+						exclude = true
+					}
+				case 'y':
+					if !strings.Contains(tune.Year(), term) {
+						exclude = true
+					}
+				}
+			} else if !strings.Contains(tune.Header.Author, term) {
+				exclude = true
+			}
+		}
+		if exclude == false {
 			FilteredTunes = append(FilteredTunes, tune)
 		}
 	}

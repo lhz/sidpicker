@@ -131,6 +131,8 @@ func keyEventSearch(ev termbox.Event) {
 		listOffset = 0
 		listPos = 0
 		mode = MODE_BROWSE
+	case termbox.KeySpace:
+		searchTerm = searchTerm + " "
 	case 0:
 		searchTerm = searchTerm + string(ev.Ch)
 	case 0x7F:
@@ -201,13 +203,13 @@ func drawHeader() {
 		//bg = termbox.ColorGreen
 		termbox.SetCursor(8+len([]rune(searchTerm)), 0)
 	}
-	header = fmt.Sprintf(fmt.Sprintf("%%s%%%ds", w-len(header)), header, "")
+	header = fmt.Sprintf(fmt.Sprintf("%%s%%%ds", w-len([]rune(header))), header, "")
 	writeAt(0, 0, header, termbox.ColorWhite, bg)
 }
 
 func drawFooter() {
 	footer := fmt.Sprintf("%d/%d  %s", listOffset+listPos+1, hvsc.NumFilteredTunes, debugInfo)
-	footer = fmt.Sprintf(fmt.Sprintf("%%s%%%ds", w-len(footer)), footer, "")
+	footer = fmt.Sprintf(fmt.Sprintf("%%s%%%ds", w-len([]rune(footer))), footer, "")
 	writeAt(0, h-1, footer, termbox.ColorWhite, termbox.ColorBlack)
 }
 
