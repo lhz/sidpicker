@@ -134,8 +134,9 @@ func keyEventSearch(ev termbox.Event) {
 	case 0:
 		searchTerm = searchTerm + string(ev.Ch)
 	case 0x7F:
-		if len(searchTerm) > 0 {
-			searchTerm = searchTerm[0 : len(searchTerm)-1]
+		runes := []rune(searchTerm)
+		if len(runes) > 0 {
+			searchTerm = string(runes[0 : len(runes)-1])
 		}
 	default:
 		debugInfo = string(ev.Key)
@@ -198,7 +199,7 @@ func drawHeader() {
 	case MODE_SEARCH:
 		header = fmt.Sprintf("Search: %s", searchTerm)
 		//bg = termbox.ColorGreen
-		termbox.SetCursor(8+len(searchTerm), 0)
+		termbox.SetCursor(8+len([]rune(searchTerm)), 0)
 	}
 	header = fmt.Sprintf(fmt.Sprintf("%%s%%%ds", w-len(header)), header, "")
 	writeAt(0, 0, header, termbox.ColorWhite, bg)
