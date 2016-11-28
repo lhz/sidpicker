@@ -250,7 +250,8 @@ func drawList() {
 }
 
 func listName(tune hvsc.SidTune) string {
-	return fmt.Sprintf("%4s %s", tune.Year(), tune.Path[1:len(tune.Path)-4])
+	//return fmt.Sprintf("%4s %s", tune.Year(), tune.Path[1:len(tune.Path)-4])
+	return fmt.Sprintf("%4d %4d  %-15s %s", tune.YearMin, tune.YearMax, strings.Split(tune.Header.Released, " ")[0], tune.Path[1:len(tune.Path)-4])
 }
 
 func writeAt(x, y int, value string, fg, bg termbox.Attribute) {

@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -18,6 +19,11 @@ import (
 const (
 	SongLengthsFile = "DOCUMENTS/Songlengths.txt"
 	TunesCacheFile  = "cache-tunes.json"
+)
+
+const (
+	MATCH_SUBSTR = iota
+	MATCH_YEAR
 )
 
 type SidHeader struct {
@@ -45,6 +51,8 @@ type SidTune struct {
 	Path        string
 	MD5         string
 	SongLengths []time.Duration
+	YearMin     int
+	YearMax     int
 	Header      SidHeader
 }
 
@@ -54,6 +62,36 @@ func (tune *SidTune) FullPath() string {
 
 func (tune *SidTune) Year() string {
 	return tune.Header.Released[0:4]
+}
+
+func (tune *SidTune) CalcYearMin() int {
+	value := strings.Split(tune.Header.Released, " ")[0]
+	value = strings.Split(value, "-")[0]
+	value = strings.Replace(value, "?", "0", -1)
+	v, err := strconv.Atoi(value)
+	if err != nil {
+		v = 1900
+	}
+	return v
+}
+
+func (tune *SidTune) CalcYearMax() int {
+	value := strings.Split(tune.Header.Released, " ")[0]
+	values := strings.Split(value, "-")
+	value = values[len(values)-1]
+	value = strings.Replace(value, "?", "9", -1)
+	if len(value) == 2 {
+		if value[0] < '7' {
+			value = "20" + value
+		} else {
+			value = "19" + value
+		}
+	}
+	v, err := strconv.Atoi(value)
+	if err != nil {
+		v = 9999
+	}
+	return v
 }
 
 var Tunes = make([]SidTune, 0)
@@ -101,6 +139,8 @@ func ReadTunesInfo() {
 			tune := SidTune{Index: len(Tunes), Path: line[2:]}
 			tune.Header = ReadSidHeader(hvscPathTo(tune.Path))
 			tune.SongLengths = make([]time.Duration, tune.Header.Songs)
+			tune.YearMin = tune.CalcYearMin()
+			tune.YearMax = tune.CalcYearMax()
 			Tunes = append(Tunes, tune)
 		} else {
 			lengths := lr.FindAllString(line, -1)
@@ -179,6 +219,7 @@ func Filter(terms string) {
 			if len(term) > 1 && term[1] == ':' {
 				prefix := term[0]
 				term = term[2:]
+				mmode := MATCH_SUBSTR
 				value := ""
 				switch prefix {
 				case 'a':
@@ -192,10 +233,27 @@ func Filter(terms string) {
 				case 't':
 					value = tune.Header.Name
 				case 'y':
-					value = tune.Year()
+					mmode = MATCH_YEAR
 				}
-				if !strings.Contains(strings.ToUpper(value), strings.ToUpper(term)) {
-					exclude = true
+				switch mmode {
+				case MATCH_SUBSTR:
+					if !strings.Contains(strings.ToUpper(value), strings.ToUpper(term)) {
+						exclude = true
+					}
+				case MATCH_YEAR:
+					parts := strings.Split(term, "-")
+					yearFrom := parseYear(parts[0], 1900)
+					if len(parts) == 1 {
+						// TODO: Check for suffix "!" before being this strict
+						if yearFrom != tune.YearMin || yearFrom != tune.YearMax {
+							exclude = true
+						}
+					} else {
+						yearTo := parseYear(parts[1], 9999)
+						if yearFrom > tune.YearMax || yearTo < tune.YearMin {
+							exclude = true
+						}
+					}
 				}
 			} else if !strings.Contains(tune.Header.Author, term) {
 				exclude = true
@@ -206,6 +264,21 @@ func Filter(terms string) {
 		}
 	}
 	NumFilteredTunes = len(FilteredTunes)
+}
+
+func parseYear(value string, defVal int) int {
+	year, err := strconv.Atoi(value)
+	if err != nil {
+		return defVal
+	}
+	if year < 100 {
+		if year < 70 {
+			year += 2000
+		} else {
+			year += 1900
+		}
+	}
+	return year
 }
 
 func stringExtract(slice []byte) string {
