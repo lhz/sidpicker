@@ -241,17 +241,33 @@ func Filter(terms string) {
 						exclude = true
 					}
 				case MATCH_YEAR:
+					strict := false
+					if term[len(term)-1] == '!' {
+						term = term[:len(term)-1]
+						strict = true
+					}
 					parts := strings.Split(term, "-")
 					yearFrom := parseYear(parts[0], 1900)
 					if len(parts) == 1 {
-						// TODO: Check for suffix "!" before being this strict
-						if yearFrom != tune.YearMin || yearFrom != tune.YearMax {
-							exclude = true
+						if strict {
+							if yearFrom != tune.YearMin || yearFrom != tune.YearMax {
+								exclude = true
+							}
+						} else {
+							if yearFrom < tune.YearMin || yearFrom > tune.YearMax {
+								exclude = true
+							}
 						}
 					} else {
 						yearTo := parseYear(parts[1], 9999)
-						if yearFrom > tune.YearMax || yearTo < tune.YearMin {
-							exclude = true
+						if strict {
+							if yearFrom > tune.YearMax || yearTo < tune.YearMin || tune.YearMin == 1900 || tune.YearMax == 9999 {
+								exclude = true
+							}
+						} else {
+							if yearFrom > tune.YearMax || yearTo < tune.YearMin {
+								exclude = true
+							}
 						}
 					}
 				}
