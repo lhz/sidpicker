@@ -126,6 +126,9 @@ func keyEvent(ev termbox.Event) {
 func keyEventSearch(ev termbox.Event) {
 	switch ev.Key {
 	case termbox.KeyCtrlC, termbox.KeyEsc:
+		mode = MODE_BROWSE
+	case termbox.KeyArrowLeft:
+	case termbox.KeyArrowRight:
 	case termbox.KeyEnter:
 		hvsc.Filter(searchTerm)
 		listOffset = 0

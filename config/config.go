@@ -7,7 +7,7 @@ import (
 )
 
 type ConfigData struct {
-	HvscPath string `env:"HVSC_PATH,required"`
+	HvscBase string `env:"HVSC_BASE,required"`
 }
 
 var Config *ConfigData

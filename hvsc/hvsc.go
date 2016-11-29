@@ -52,7 +52,7 @@ type SidTune struct {
 }
 
 func (tune *SidTune) FullPath() string {
-	return fmt.Sprintf("%s/%s", config.Config.HvscPath, tune.Path)
+	return fmt.Sprintf("%s/%s", config.Config.HvscBase, tune.Path)
 }
 
 func (tune *SidTune) Year() string {
@@ -226,7 +226,7 @@ func stringExtract(slice []byte) string {
 }
 
 func hvscPathTo(filePath string) string {
-	return fmt.Sprintf("%s/%s", config.Config.HvscPath, filePath)
+	return fmt.Sprintf("%s/%s", config.Config.HvscBase, filePath)
 }
 
 func parseSongLength(value string) time.Duration {
