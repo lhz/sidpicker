@@ -19,7 +19,9 @@ const (
 var w, h int
 var listOffset, listPos, lh, ly int
 var mode int
-var searchTerm, debugInfo string
+var debugInfo string
+var searchTerm []rune
+var searchCursorPos int
 var quit = false
 
 func Setup() {
@@ -115,7 +117,6 @@ func keyEvent(ev termbox.Event) {
 			return
 		}
 		if ev.Ch == '/' {
-			//searchTerm = ""
 			mode = MODE_SEARCH
 		}
 	default:
@@ -128,24 +129,37 @@ func keyEventSearch(ev termbox.Event) {
 	case termbox.KeyCtrlC, termbox.KeyEsc:
 		mode = MODE_BROWSE
 	case termbox.KeyArrowLeft:
+		if searchCursorPos > 0 {
+			searchCursorPos--
+		}
 	case termbox.KeyArrowRight:
+		if searchCursorPos < len(searchTerm) {
+			searchCursorPos++
+		}
 	case termbox.KeyEnter:
-		hvsc.Filter(searchTerm)
+		hvsc.Filter(string(searchTerm))
 		listOffset = 0
 		listPos = 0
 		mode = MODE_BROWSE
 	case termbox.KeySpace:
-		searchTerm = searchTerm + " "
+		searchInsert(rune(' '))
 	case 0:
-		searchTerm = searchTerm + string(ev.Ch)
+		searchInsert(ev.Ch)
 	case 0x7F:
-		runes := []rune(searchTerm)
-		if len(runes) > 0 {
-			searchTerm = string(runes[0 : len(runes)-1])
+		if searchCursorPos > 0 {
+			searchTerm = append(searchTerm[0:searchCursorPos-1], searchTerm[searchCursorPos:len(searchTerm)]...)
+			searchCursorPos--
 		}
 	default:
 		debugInfo = string(ev.Key)
 	}
+}
+
+func searchInsert(ch rune) {
+	searchTerm = append(searchTerm, rune(' '))
+	copy(searchTerm[searchCursorPos+1:], searchTerm[searchCursorPos:])
+	searchTerm[searchCursorPos] = ch
+	searchCursorPos++
 }
 
 func moveUp() {
@@ -199,12 +213,12 @@ func drawHeader() {
 	bg := termbox.ColorBlack
 	switch mode {
 	case MODE_BROWSE:
-		header = fmt.Sprintf("Browse: %s", searchTerm)
+		header = fmt.Sprintf("Browse: %s", string(searchTerm))
 		termbox.HideCursor()
 	case MODE_SEARCH:
-		header = fmt.Sprintf("Search: %s", searchTerm)
-		//bg = termbox.ColorGreen
-		termbox.SetCursor(8+len([]rune(searchTerm)), 0)
+		header = fmt.Sprintf("Search: %s", string(searchTerm))
+		bg = termbox.ColorGreen
+		termbox.SetCursor(8+searchCursorPos, 0)
 	}
 	header = fmt.Sprintf(fmt.Sprintf("%%s%%%ds", w-len([]rune(header))), header, "")
 	writeAt(0, 0, header, termbox.ColorWhite, bg)
