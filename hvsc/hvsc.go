@@ -21,11 +21,6 @@ const (
 	TunesCacheFile  = "cache-tunes.json"
 )
 
-const (
-	MATCH_SUBSTR = iota
-	MATCH_YEAR
-)
-
 type SidHeader struct {
 	MagicID     string
 	Version     int
@@ -97,9 +92,6 @@ func (tune *SidTune) CalcYearMax() int {
 var Tunes = make([]SidTune, 0)
 var NumTunes = 0
 
-var FilteredTunes = make([]SidTune, 0)
-var NumFilteredTunes = 0
-
 var header = make([]byte, 124)
 
 // Read tunes data from cache file
@@ -117,8 +109,7 @@ func ReadTunesInfoCached() {
 
 	json.Unmarshal(content, &Tunes)
 	NumTunes = len(Tunes)
-	FilteredTunes = Tunes
-	NumFilteredTunes = NumTunes
+	FilterAll()
 }
 
 // Build tunes data from .sid-files and various documents
@@ -155,8 +146,7 @@ func ReadTunesInfo() {
 	}
 
 	NumTunes = len(Tunes)
-	FilteredTunes = Tunes
-	NumFilteredTunes = NumTunes
+	FilterAll()
 
 	b, err := json.MarshalIndent(Tunes, "", "  ")
 	if err != nil {
@@ -209,77 +199,6 @@ func ReadSidHeader(fileName string) SidHeader {
 		h.Sid3Address = uint16(header[123])*16 + 0xD000
 	}
 	return h
-}
-
-func Filter(terms string) {
-	FilteredTunes = make([]SidTune, 0)
-	for _, tune := range Tunes {
-		exclude := false
-		for _, term := range strings.Split(terms, " ") {
-			if len(term) > 1 && term[1] == ':' {
-				prefix := term[0]
-				term = term[2:]
-				mmode := MATCH_SUBSTR
-				value := ""
-				switch prefix {
-				case 'a':
-					value = tune.Header.Author
-				case 'n':
-					value = tune.Header.Name
-				case 'p':
-					value = tune.Path
-				case 'r':
-					value = tune.Header.Released
-				case 't':
-					value = tune.Header.Name
-				case 'y':
-					mmode = MATCH_YEAR
-				}
-				switch mmode {
-				case MATCH_SUBSTR:
-					if !strings.Contains(strings.ToUpper(value), strings.ToUpper(term)) {
-						exclude = true
-					}
-				case MATCH_YEAR:
-					strict := false
-					if term[len(term)-1] == '!' {
-						term = term[:len(term)-1]
-						strict = true
-					}
-					parts := strings.Split(term, "-")
-					yearFrom := parseYear(parts[0], 1900)
-					if len(parts) == 1 {
-						if strict {
-							if yearFrom != tune.YearMin || yearFrom != tune.YearMax {
-								exclude = true
-							}
-						} else {
-							if yearFrom < tune.YearMin || yearFrom > tune.YearMax {
-								exclude = true
-							}
-						}
-					} else {
-						yearTo := parseYear(parts[1], 9999)
-						if strict {
-							if yearFrom > tune.YearMax || yearTo < tune.YearMin || tune.YearMin == 1900 || tune.YearMax == 9999 {
-								exclude = true
-							}
-						} else {
-							if yearFrom > tune.YearMax || yearTo < tune.YearMin {
-								exclude = true
-							}
-						}
-					}
-				}
-			} else if !strings.Contains(tune.Header.Author, term) {
-				exclude = true
-			}
-		}
-		if exclude == false {
-			FilteredTunes = append(FilteredTunes, tune)
-		}
-	}
-	NumFilteredTunes = len(FilteredTunes)
 }
 
 func parseYear(value string, defVal int) int {

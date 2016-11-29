@@ -115,7 +115,7 @@ func keyEvent(ev termbox.Event) {
 			return
 		}
 		if ev.Ch == '/' {
-			searchTerm = ""
+			//searchTerm = ""
 			mode = MODE_SEARCH
 		}
 	default:
