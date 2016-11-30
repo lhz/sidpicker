@@ -220,8 +220,11 @@ func pageUp() {
 
 func pageDown() {
 	listOffset += lh
-	if listOffset > hvsc.NumFilteredTunes-1 {
+	if listOffset > len(list)-1 {
 		listOffset -= lh
+	}
+	if listOffset+listPos > len(list)-1 {
+		listPos = len(list) - listOffset - 1
 	}
 }
 
