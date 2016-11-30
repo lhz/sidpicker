@@ -3,7 +3,6 @@ package ui
 import (
 	"fmt"
 	"log"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -15,20 +14,10 @@ import (
 const (
 	MODE_BROWSE = iota
 	MODE_SEARCH
-
-	ITEM_FOLDER = iota
-	ITEM_TUNE
 )
 
-type ListItem struct {
-	Type      int
-	TuneIndex int
-	Name      string
-}
-
 var w, h int
-var list []ListItem
-var listOffset, listPos, lh, ly int
+var list *List
 var mode int
 var debugInfo string
 var searchTerm []rune
@@ -43,11 +32,7 @@ func Setup() {
 
 	w, h = termbox.Size()
 
-	list = buildList()
-	listOffset = 0
-	listPos = 1
-	ly = 1
-	lh = h - 2
+	list = NewList(h - 2)
 
 	termbox.SetInputMode(termbox.InputEsc | termbox.InputMouse)
 	draw()
@@ -104,23 +89,22 @@ func keyEvent(ev termbox.Event) {
 		player.Stop()
 		quit = true
 	case termbox.KeyPgup:
-		pageUp()
+		list.PrevPage()
 	case termbox.KeyPgdn:
-		pageDown()
+		list.NextPage()
 	case termbox.KeyArrowUp:
-		moveUp()
+		list.PrevTune()
 	case termbox.KeyArrowDown:
-		moveDown()
+		list.NextTune()
 	case termbox.KeyArrowLeft:
 		player.PrevSong()
 	case termbox.KeyArrowRight:
 		player.NextSong()
 	case termbox.KeyEnter:
-		if currentItem().Type == ITEM_TUNE {
-			player.Play(currentItem().TuneIndex, 1)
-		}
+		player.Play(list.CurrentItem().TuneIndex, 1)
 	case termbox.KeySpace:
-		moveNextTune()
+		list.NextTune()
+		player.Play(list.CurrentItem().TuneIndex, 1)
 	case termbox.KeyDelete:
 		player.Stop()
 	case 0:
@@ -152,9 +136,7 @@ func keyEventSearch(ev termbox.Event) {
 		}
 	case termbox.KeyEnter:
 		hvsc.Filter(string(searchTerm))
-		list = buildList()
-		listOffset = 0
-		listPos = 1
+		list = NewList(h - 2)
 		mode = MODE_BROWSE
 	case termbox.KeySpace:
 		searchInsert(rune(' '))
@@ -175,76 +157,6 @@ func searchInsert(ch rune) {
 	copy(searchTerm[searchCursorPos+1:], searchTerm[searchCursorPos:])
 	searchTerm[searchCursorPos] = ch
 	searchCursorPos++
-}
-
-func moveUp() {
-	if listOffset+listPos <= 1 {
-		return
-	}
-	listPos--
-	if listPos < 0 {
-		if listOffset > 0 {
-			listPos = lh - 1
-			pageUp()
-		} else {
-			listPos = 0
-		}
-	}
-	if currentItem().Type != ITEM_TUNE {
-		moveUp()
-	}
-}
-
-func moveDown() {
-	if listOffset+listPos == len(list)-1 {
-		return
-	}
-	listPos++
-	if listPos >= lh {
-		listPos = 0
-		pageDown()
-	}
-	if currentItem().Type != ITEM_TUNE {
-		moveDown()
-	}
-}
-
-func moveNextTune() {
-	if listOffset+listPos == len(list)-1 {
-		return
-	}
-	moveDown()
-	if currentItem().Type != ITEM_TUNE {
-		moveNextTune()
-	}
-	player.Play(currentItem().TuneIndex, 1)
-}
-
-func pageUp() {
-	listOffset -= lh
-	if listOffset < 0 {
-		listOffset = 0
-	}
-	if currentItem().Type != ITEM_TUNE {
-		if listOffset+listPos == 0 {
-			moveDown()
-		} else {
-			moveUp()
-		}
-	}
-}
-
-func pageDown() {
-	listOffset += lh
-	if listOffset > len(list)-1 {
-		listOffset -= lh
-	}
-	if listOffset+listPos > len(list)-1 {
-		listPos = len(list) - listOffset - 1
-	}
-	if currentItem().Type != ITEM_TUNE {
-		moveDown()
-	}
 }
 
 func draw() {
@@ -273,7 +185,7 @@ func drawHeader() {
 }
 
 func drawFooter() {
-	footer := fmt.Sprintf("%d/%d  %s", listOffset+listPos+1, hvsc.NumFilteredTunes, debugInfo)
+	footer := fmt.Sprintf("%d/%d  %s", list.CurrentItem().TuneIndex+1, hvsc.NumFilteredTunes, debugInfo)
 	footer = fmt.Sprintf(fmt.Sprintf("%%s%%%ds", w-len([]rune(footer))), footer, "")
 	writeAt(0, h-1, footer, termbox.ColorWhite, termbox.ColorBlack)
 }
@@ -297,30 +209,22 @@ func drawTuneInfo() {
 }
 
 func drawList() {
-	for y := 0; y < lh; y++ {
-		if y+listOffset >= len(list) {
-			break
-		}
+	for i, item := range list.CurrentPage() {
 		fg := termbox.ColorDefault
 		bg := termbox.ColorDefault
-		if y == listPos {
+		if i == list.PagePos {
 			bg = termbox.ColorBlue
 		}
-		item := list[y+listOffset]
 		if item.Type == ITEM_TUNE {
 			tune := hvsc.FilteredTunes[item.TuneIndex]
 			if player.CurrentTune != nil && player.CurrentTune.Index == tune.Index {
 				fg |= termbox.AttrBold
 			}
-			writeAt(2, ly+y, item.Name, fg, bg)
+			writeAt(2, 1+i, item.Name, fg, bg)
 		} else {
-			writeAt(0, ly+y, item.Name, fg|termbox.AttrBold, bg)
+			writeAt(0, 1+i, item.Name, fg|termbox.AttrBold, bg)
 		}
 	}
-}
-
-func listName(tune hvsc.SidTune) string {
-	return fmt.Sprintf("%4s %s", tune.Year(), tune.Path[1:len(tune.Path)-4])
 }
 
 func writeAt(x, y int, value string, fg, bg termbox.Attribute) {
@@ -329,22 +233,4 @@ func writeAt(x, y int, value string, fg, bg termbox.Attribute) {
 		termbox.SetCell(x+i, y, c, fg, bg)
 		i++
 	}
-}
-
-func buildList() []ListItem {
-	items := make([]ListItem, 0)
-	lastPath := ""
-	for i, tune := range hvsc.FilteredTunes {
-		path := filepath.Dir(tune.Path)
-		if path != lastPath {
-			lastPath = path
-			items = append(items, ListItem{Type: ITEM_FOLDER, TuneIndex: -1, Name: path})
-		}
-		items = append(items, ListItem{Type: ITEM_TUNE, TuneIndex: i, Name: tune.Header.Name})
-	}
-	return items
-}
-
-func currentItem() ListItem {
-	return list[listOffset+listPos]
 }
