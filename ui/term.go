@@ -45,7 +45,7 @@ func Setup() {
 
 	list = buildList()
 	listOffset = 0
-	listPos = 0
+	listPos = 1
 	ly = 1
 	lh = h - 2
 
@@ -154,7 +154,7 @@ func keyEventSearch(ev termbox.Event) {
 		hvsc.Filter(string(searchTerm))
 		list = buildList()
 		listOffset = 0
-		listPos = 0
+		listPos = 1
 		mode = MODE_BROWSE
 	case termbox.KeySpace:
 		searchInsert(rune(' '))
@@ -178,6 +178,9 @@ func searchInsert(ch rune) {
 }
 
 func moveUp() {
+	if listOffset+listPos <= 1 {
+		return
+	}
 	listPos--
 	if listPos < 0 {
 		if listOffset > 0 {
@@ -186,6 +189,9 @@ func moveUp() {
 		} else {
 			listPos = 0
 		}
+	}
+	if currentItem().Type != ITEM_TUNE {
+		moveUp()
 	}
 }
 
@@ -197,6 +203,9 @@ func moveDown() {
 	if listPos >= lh {
 		listPos = 0
 		pageDown()
+	}
+	if currentItem().Type != ITEM_TUNE {
+		moveDown()
 	}
 }
 
@@ -216,6 +225,13 @@ func pageUp() {
 	if listOffset < 0 {
 		listOffset = 0
 	}
+	if currentItem().Type != ITEM_TUNE {
+		if listOffset+listPos == 0 {
+			moveDown()
+		} else {
+			moveUp()
+		}
+	}
 }
 
 func pageDown() {
@@ -225,6 +241,9 @@ func pageDown() {
 	}
 	if listOffset+listPos > len(list)-1 {
 		listPos = len(list) - listOffset - 1
+	}
+	if currentItem().Type != ITEM_TUNE {
+		moveDown()
 	}
 }
 
