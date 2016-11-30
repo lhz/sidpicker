@@ -177,11 +177,11 @@ func drawHeader() {
 		termbox.HideCursor()
 	case MODE_SEARCH:
 		header = fmt.Sprintf("Search: %s", string(searchTerm))
-		bg = termbox.ColorGreen
+		bg = termbox.ColorMagenta
 		termbox.SetCursor(8+searchCursorPos, 0)
 	}
 	header = fmt.Sprintf(fmt.Sprintf("%%s%%%ds", w-len([]rune(header))), header, "")
-	writeAt(0, 0, header, termbox.ColorWhite, bg)
+	writeAt(0, 0, header, termbox.ColorWhite|termbox.AttrBold, bg)
 }
 
 func drawFooter() {
