@@ -7,10 +7,10 @@ import (
 )
 
 type List struct {
-	Items      []ListItem
-	PageOffset int
-	PagePos    int
-	PageSize   int
+	Items    []ListItem
+	PageNum  int
+	PagePos  int
+	PageSize int
 }
 
 type ListItem struct {
@@ -35,26 +35,26 @@ func NewList(pageSize int) *List {
 		}
 		items = append(items, ListItem{Type: ITEM_TUNE, TuneIndex: i, Name: tune.Header.Name})
 	}
-	return &List{Items: items, PageOffset: 0, PagePos: 1, PageSize: pageSize}
+	return &List{Items: items, PageNum: 0, PagePos: 1, PageSize: pageSize}
 }
 
 func (l *List) CurrentItem() ListItem {
-	return l.Items[l.PageOffset+l.PagePos]
+	return l.Items[l.pos()]
 }
 
 func (l *List) CurrentPage() []ListItem {
-	if l.PageOffset+l.PageSize > l.maxPos() {
-		return l.Items[l.PageOffset:len(l.Items)]
+	if l.pageOffset()+l.PageSize > l.maxPos() {
+		return l.Items[l.pageOffset():len(l.Items)]
 	} else {
-		return l.Items[l.PageOffset : l.PageOffset+l.PageSize]
+		return l.Items[l.pageOffset() : l.pageOffset()+l.PageSize]
 	}
 }
 
 func (l *List) PrevPage() {
-	l.PageOffset -= l.PageSize
-	if l.PageOffset < 0 {
-		l.PageOffset = 0
+	if l.PageNum == 0 {
+		return
 	}
+	l.PageNum--
 	if l.CurrentItem().Type != ITEM_TUNE {
 		if l.pos() == 0 {
 			l.NextTune()
@@ -65,12 +65,12 @@ func (l *List) PrevPage() {
 }
 
 func (l *List) NextPage() {
-	if l.PageOffset+l.PageSize > l.maxPos() {
+	if l.pageOffset()+l.PageSize > l.maxPos() {
 		return
 	}
-	l.PageOffset += l.PageSize
+	l.PageNum++
 	if l.pos() > l.maxPos() {
-		l.PagePos = l.maxPos() - l.PageOffset
+		l.PagePos = l.maxPos() - l.pageOffset()
 	}
 	if l.CurrentItem().Type != ITEM_TUNE {
 		l.NextTune()
@@ -83,7 +83,7 @@ func (l *List) PrevTune() {
 	}
 	l.PagePos--
 	if l.PagePos < 0 {
-		if l.PageOffset > 0 {
+		if l.PageNum > 0 {
 			l.PagePos = l.PageSize - 1
 			l.PrevPage()
 		} else {
@@ -110,9 +110,13 @@ func (l *List) NextTune() {
 }
 
 func (l *List) pos() int {
-	return l.PageOffset + l.PagePos
+	return l.pageOffset() + l.PagePos
 }
 
 func (l *List) maxPos() int {
 	return len(l.Items) - 1
+}
+
+func (l *List) pageOffset() int {
+	return l.PageNum * l.PageSize
 }
