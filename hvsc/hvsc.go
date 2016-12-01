@@ -46,6 +46,7 @@ type SidTune struct {
 	Path        string
 	MD5         string
 	SongLengths []time.Duration
+	Info        []string
 	YearMin     int
 	YearMax     int
 	Header      SidHeader
@@ -147,6 +148,8 @@ func ReadTunesInfo() {
 
 	NumTunes = len(Tunes)
 	FilterAll()
+
+	readSTIL()
 
 	b, err := json.MarshalIndent(Tunes, "", "  ")
 	if err != nil {

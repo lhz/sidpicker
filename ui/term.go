@@ -206,6 +206,13 @@ func drawTuneInfo() {
 
 	writeAt(ox, oy+4, fmt.Sprintf("Tune: %d/%d  Length: %s  Time: %s",
 		player.CurrentSong, tune.Header.Songs, player.SongLength(), player.Elapsed()), fg, bg)
+
+	for i, line := range tune.Info {
+		if oy+6+i > h-2 {
+			break
+		}
+		writeAt(ox, oy+6+i, line, fg, bg)
+	}
 }
 
 func drawList() {
