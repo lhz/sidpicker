@@ -135,9 +135,10 @@ func keyEventSearch(ev termbox.Event) {
 			searchCursorPos++
 		}
 	case termbox.KeyEnter:
-		hvsc.Filter(string(searchTerm))
-		list = NewList(h - 2)
-		mode = MODE_BROWSE
+		if hvsc.Filter(string(searchTerm)) {
+			list = NewList(h - 2)
+			mode = MODE_BROWSE
+		}
 	case termbox.KeySpace:
 		searchInsert(rune(' '))
 	case 0:

@@ -10,14 +10,19 @@ func FilterAll() {
 	NumFilteredTunes = NumTunes
 }
 
-func Filter(terms string) {
-	FilteredTunes = make([]SidTune, 0)
+func Filter(terms string) bool {
+	tunes := make([]SidTune, 0)
 	for _, tune := range Tunes {
 		if filterTune(&tune, terms) {
-			FilteredTunes = append(FilteredTunes, tune)
+			tunes = append(tunes, tune)
 		}
 	}
+	if len(tunes) == 0 {
+		return false
+	}
+	FilteredTunes = tunes
 	NumFilteredTunes = len(FilteredTunes)
+	return true
 }
 
 func filterTune(tune *SidTune, terms string) bool {
@@ -83,6 +88,8 @@ func valueByFilterPrefix(tune *SidTune, prefix byte) string {
 		return tune.Path
 	case 'r':
 		return tune.Header.Released
+	case 's':
+		return strings.Join(tune.Info, " ")
 	case 't':
 		return tune.Header.Name
 	}
