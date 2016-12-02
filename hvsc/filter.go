@@ -38,7 +38,7 @@ func filterTune(tune *SidTune, terms string) bool {
 				exclude = exclude || !strings.Contains(strings.ToUpper(value), strings.ToUpper(term))
 			}
 		} else {
-			exclude = exclude || !strings.Contains(tune.Header.Author, term)
+			exclude = exclude || !strings.Contains(strings.ToUpper(allText(tune)), strings.ToUpper(term))
 		}
 	}
 
@@ -94,4 +94,13 @@ func valueByFilterPrefix(tune *SidTune, prefix byte) string {
 		return tune.Header.Name
 	}
 	return ""
+}
+
+func allText(tune *SidTune) string {
+	text := []string{
+		tune.Header.Author,
+		tune.Header.Name,
+		tune.Path,
+		tune.Header.Released}
+	return strings.Join(append(text, tune.Info...), " ")
 }
