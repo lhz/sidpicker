@@ -11,16 +11,17 @@ import (
 	"strings"
 	"encoding/json"
 
+	//"github.com/ghodss/yaml"
 	"github.com/PuerkitoBio/goquery"
 )
 
 const basePath = "/home/lars/c64/sidinfo"
 
 type Release struct {
-	CSDbId int
-	Name   string
-	Groups string
-	Year   string
+	Id    int     `json:"id"`
+	Name  string  `json:"name"`
+	Group string  `json:"group"`
+	Year  string  `json:"year"`
 }
 
 var sidUses map[string][]Release
@@ -57,8 +58,10 @@ func main() {
 		parseContent(bytes.NewReader(html))
 	}
 
-	json, _ := json.MarshalIndent(sidUses, "", "  ")
-	fmt.Printf(string(json))
+	 json, _ := json.MarshalIndent(sidUses, "", "  ")
+	 fmt.Printf(string(json))
+	//yaml, _ := yaml.Marshal(sidUses)
+	//fmt.Printf(string(yaml))
 }
 
 func parseContent(r io.Reader) {
@@ -75,15 +78,15 @@ func parseContent(r io.Reader) {
 	doc.Find("table[cellpadding='0'] tr td a[href*='/release/?id=']").Each(func(i int, s *goquery.Selection) {
 		release := Release{Name: s.Text()}
 		if href, ok := s.Attr("href"); ok {
-			release.CSDbId, _ = strconv.Atoi(href[13:])
+			release.Id, _ = strconv.Atoi(href[13:])
 		}
 		groups := s.Parent().Parent().Find("td font[color='#2575ff']").Map(func(i int, s *goquery.Selection) string {
 			return s.Text()
 		})
 		year := s.Parent().Parent().Find("td font[size='1']").First().Text()
 		if len(groups) > 0 || year != "" {
-			release.Groups = strings.Join(groups, ", ")
-			release.Year   = year
+			release.Group = strings.Join(groups, ", ")
+			release.Year  = year
 			releases = append(releases, release)
 		}
 	})
