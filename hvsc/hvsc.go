@@ -46,7 +46,6 @@ type SidHeader struct {
 type SidTune struct {
 	Index       int              `json:"-"`
 	Path        string           `json:"path"`
-	MD5         string           `json:"md5"`
 	SongLengths []time.Duration  `json:"lengths"`
 	Info        []string         `json:"info,omitempty"`
 	YearMin     int              `json:"year"`
