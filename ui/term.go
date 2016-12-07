@@ -86,8 +86,11 @@ func keyEvent(ev termbox.Event) {
 	}
 	switch ev.Key {
 	case termbox.KeyCtrlC, termbox.KeyEsc:
-		player.Stop()
-		quit = true
+		if player.Playing {
+			player.Stop()
+		} else {
+			quit = true
+		}
 	case termbox.KeyPgup:
 		list.PrevPage()
 	case termbox.KeyPgdn:
@@ -109,7 +112,7 @@ func keyEvent(ev termbox.Event) {
 		player.Stop()
 	case 0:
 		if n := strings.IndexRune("0123456789", ev.Ch); n > 0 {
-			if n <= player.CurrentTune.Header.Songs {
+			if player.Playing && n <= player.CurrentTune.Header.Songs {
 				player.PlaySub(n)
 			}
 			return
