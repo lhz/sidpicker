@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -39,7 +40,7 @@ func Run() {
 			switch msg.Command {
 			case PLAY_COMMAND:
 				StartTime = time.Now()
-				playCmd = exec.Command("/usr/bin/sidplayfp", "-o"+msg.Args[1], msg.Args[0])
+				playCmd = exec.Command("sidplayfp", "-o"+msg.Args[1], msg.Args[0])
 				playCmd.Stdout = os.Stdout
 				if err := playCmd.Start(); err != nil {
 					log.Print("Failed to start player process: ", err)
@@ -110,7 +111,11 @@ func TimeFormat(duration time.Duration) string {
 
 func stopCommand(cmd *exec.Cmd) {
 	if cmd != nil {
-		cmd.Process.Signal(os.Interrupt)
-		cmd.Wait()
+		if runtime.GOOS == "windows" {
+			cmd.Process.Kill()
+		} else {
+			cmd.Process.Signal(os.Interrupt)
+			cmd.Wait()
+		}
 	}
 }
