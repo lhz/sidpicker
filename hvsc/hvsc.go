@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -19,41 +20,64 @@ import (
 const (
 	SongLengthsFile = "DOCUMENTS/Songlengths.txt"
 	TunesCacheFile  = "cache-tunes.json"
+	DefaultTitle    = "<?>"
 )
 
 type SidHeader struct {
-	MagicID     string
-	Version     int
-	DataOffset  uint16
-	LoadAddress uint16
-	InitAddress uint16
-	PlayAddress uint16
-	Songs       int
-	StartSong   int
-	Speed       uint32
-	Name        string
-	Author      string
-	Released    string
-	Flags       uint16
-	StartPage   byte
-	PageLength  byte
-	Sid2Address uint16
-	Sid3Address uint16
+	MagicID     string  `json:"magic,omitempty"`
+	Version     int     `json:"version,omitempty"`
+	DataOffset  uint16  `json:"offset,omitempty"`
+	LoadAddress uint16  `json:"load,omitempty"`
+	InitAddress uint16  `json:"init,omitempty"`
+	PlayAddress uint16  `json:"play,omitempty"`
+	Songs       int     `json:"songs,omitempty"`
+	StartSong   int     `json:"start,omitempty"`
+	Speed       uint32  `json:"speed,omitempty"`
+	Name        string  `json:"name,omitempty"`
+	Author      string  `json:"author,omitempty"`
+	Released    string  `json:"released,omitempty"`
+	Flags       uint16  `json:"flags,omitempty"`
+	StartPage   byte    `json:"page,omitempty"`
+	PageLength  byte    `json:"pages,omitempty"`
+	Sid2Address uint16  `json:"s2addr,omitempty"`
+	Sid3Address uint16  `json:"s3addr,omitempty"`
 }
 
 type SidTune struct {
-	Index       int
-	Path        string
-	MD5         string
-	SongLengths []time.Duration
-	Info        []string
-	YearMin     int
-	YearMax     int
-	Header      SidHeader
+	Index       int              `json:"-"`
+	Path        string           `json:"path"`
+	MD5         string           `json:"md5"`
+	SongLengths []time.Duration  `json:"lengths"`
+	Info        []string         `json:"info,omitempty"`
+	YearMin     int              `json:"year"`
+	YearMax     int              `json:"ymax,omitempty"`
+	Header      SidHeader        `json:"header"`
 }
 
 func (tune *SidTune) FullPath() string {
 	return fmt.Sprintf("%s/%s", config.Config.HvscBase, tune.Path)
+}
+
+func (tune *SidTune) Filename() string {
+	return filepath.Base(tune.Path)
+}
+
+func (tune *SidTune) Title() string {
+	if len(tune.Header.Name) > 0 {
+		return tune.Header.Name
+	} else {
+		return DefaultTitle
+	}
+}
+
+func (tune *SidTune) ListName() string {
+	if len(tune.Header.Name) > 0 {
+		return tune.Header.Name
+	} else {
+		name := tune.Filename()
+		ext  := filepath.Ext(name)
+		return name[0:len(name)-len(ext)]
+	}
 }
 
 func (tune *SidTune) Year() string {
@@ -110,6 +134,9 @@ func ReadTunesInfoCached() {
 
 	json.Unmarshal(content, &Tunes)
 	NumTunes = len(Tunes)
+
+	addDefaults()
+
 	FilterAll()
 }
 
@@ -151,17 +178,19 @@ func ReadTunesInfo() {
 
 	readSTIL()
 
+	removeDefaults()
+
 	b, err := json.MarshalIndent(Tunes, "", "  ")
 	if err != nil {
 		log.Fatal(err)
 	}
-	jsonFile, err := os.Create(hvscPathTo(TunesCacheFile))
+	cacheFile, err := os.Create(hvscPathTo(TunesCacheFile))
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer jsonFile.Close()
+	defer cacheFile.Close()
 
-	jsonFile.Write(b)
+	cacheFile.Write(b)
 }
 
 func ReadSidHeader(fileName string) SidHeader {
@@ -239,4 +268,34 @@ func parseSongLength(value string) time.Duration {
 		return 0
 	}
 	return dur
+}
+
+// Set default tune/header fields to empty values to reduce marshalling size
+func removeDefaults() {
+	for i, tune := range Tunes {
+		if tune.YearMax == tune.YearMin { tune.YearMax = 0 }
+		if tune.Header.MagicID == "PSID" { tune.Header.MagicID = "" }
+		if tune.Header.Version == 2 { tune.Header.Version = 0 }
+		if tune.Header.DataOffset == 124 { tune.Header.DataOffset = 0 }
+		if tune.Header.Songs == 1 { tune.Header.Songs = 0 }
+		if tune.Header.StartSong == 1 { tune.Header.StartSong = 0 }
+		if tune.Header.Name == "<?>" { tune.Header.Name = "" }
+		if tune.Header.Author == "<?>" { tune.Header.Author = "" }
+		if tune.Header.Released == "<?>" { tune.Header.Released = "" }
+		Tunes[i] = tune
+	}
+}
+
+// Set empty tune/header fields to default values after unmarshalling
+func addDefaults() {
+	for i, tune := range Tunes {
+		tune.Index = i
+		if tune.YearMax == 0 { tune.YearMax = tune.YearMin }
+		if tune.Header.MagicID == "" { tune.Header.MagicID = "PSID" }
+		if tune.Header.Version == 0 { tune.Header.Version = 2 }
+		if tune.Header.DataOffset == 0 { tune.Header.DataOffset = 124 }
+		if tune.Header.Songs == 0 { tune.Header.Songs = 1 }
+		if tune.Header.StartSong == 0 { tune.Header.StartSong = 1 }
+		Tunes[i] = tune
+	}
 }

@@ -201,7 +201,7 @@ func drawTuneInfo() {
 	fg := termbox.ColorDefault
 	bg := termbox.ColorDefault
 
-	writeAt(ox, oy+0, fmt.Sprintf("Title:    %s", tune.Header.Name), fg, bg)
+	writeAt(ox, oy+0, fmt.Sprintf("Title:    %s", tune.Title()), fg, bg)
 	writeAt(ox, oy+1, fmt.Sprintf("Author:   %s", tune.Header.Author), fg, bg)
 	writeAt(ox, oy+2, fmt.Sprintf("Released: %s", tune.Header.Released), fg, bg)
 
@@ -229,7 +229,7 @@ func drawList() {
 			if player.CurrentTune != nil && player.CurrentTune.Index == tune.Index {
 				fg |= termbox.AttrBold
 			}
-			writeAt(0, 1+i, fmt.Sprintf(" %-32s %4s", item.Name, tune.Year()), fg, bg)
+			writeAt(0, 1+i, fmt.Sprintf(" %-32s %4s", tune.ListName(), tune.Year()), fg, bg)
 		} else {
 			folder := []rune(item.Name[1:])
 			if len(folder) > 40 {
