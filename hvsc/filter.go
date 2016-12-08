@@ -102,5 +102,6 @@ func allText(tune *SidTune) string {
 		tune.Header.Name,
 		tune.Path,
 		tune.Header.Released}
-	return strings.Join(append(text, tune.Info...), " ")
+	text = append(text, tune.Info...)
+	return strings.Join(text, " ")
 }

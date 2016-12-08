@@ -24,33 +24,34 @@ const (
 )
 
 type SidHeader struct {
-	MagicID     string  `json:"magic,omitempty"`
-	Version     int     `json:"version,omitempty"`
-	DataOffset  uint16  `json:"offset,omitempty"`
-	LoadAddress uint16  `json:"load,omitempty"`
-	InitAddress uint16  `json:"init,omitempty"`
-	PlayAddress uint16  `json:"play,omitempty"`
-	Songs       int     `json:"songs,omitempty"`
-	StartSong   int     `json:"start,omitempty"`
-	Speed       uint32  `json:"speed,omitempty"`
-	Name        string  `json:"name,omitempty"`
-	Author      string  `json:"author,omitempty"`
-	Released    string  `json:"released,omitempty"`
-	Flags       uint16  `json:"flags,omitempty"`
-	StartPage   byte    `json:"page,omitempty"`
-	PageLength  byte    `json:"pages,omitempty"`
-	Sid2Address uint16  `json:"s2addr,omitempty"`
-	Sid3Address uint16  `json:"s3addr,omitempty"`
+	MagicID     string `json:"magic,omitempty"`
+	Version     int    `json:"version,omitempty"`
+	DataOffset  uint16 `json:"offset,omitempty"`
+	LoadAddress uint16 `json:"load,omitempty"`
+	InitAddress uint16 `json:"init,omitempty"`
+	PlayAddress uint16 `json:"play,omitempty"`
+	Songs       int    `json:"songs,omitempty"`
+	StartSong   int    `json:"start,omitempty"`
+	Speed       uint32 `json:"speed,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Author      string `json:"author,omitempty"`
+	Released    string `json:"released,omitempty"`
+	Flags       uint16 `json:"flags,omitempty"`
+	StartPage   byte   `json:"page,omitempty"`
+	PageLength  byte   `json:"pages,omitempty"`
+	Sid2Address uint16 `json:"s2addr,omitempty"`
+	Sid3Address uint16 `json:"s3addr,omitempty"`
 }
 
 type SidTune struct {
-	Index       int              `json:"-"`
-	Path        string           `json:"path"`
-	SongLengths []time.Duration  `json:"lengths"`
-	Info        []string         `json:"info,omitempty"`
-	YearMin     int              `json:"year"`
-	YearMax     int              `json:"ymax,omitempty"`
-	Header      SidHeader        `json:"header"`
+	Index       int             `json:"-"`
+	Path        string          `json:"path"`
+	SongLengths []time.Duration `json:"lengths"`
+	Info        []string        `json:"info,omitempty"`
+	Releases    []Release       `json:"releases,omitempty"`
+	YearMin     int             `json:"year"`
+	YearMax     int             `json:"ymax,omitempty"`
+	Header      SidHeader       `json:"header"`
 }
 
 func (tune *SidTune) FullPath() string {
@@ -74,8 +75,8 @@ func (tune *SidTune) ListName() string {
 		return tune.Header.Name
 	} else {
 		name := tune.Filename()
-		ext  := filepath.Ext(name)
-		return name[0:len(name)-len(ext)]
+		ext := filepath.Ext(name)
+		return name[0 : len(name)-len(ext)]
 	}
 }
 
@@ -117,6 +118,15 @@ var Tunes = make([]SidTune, 0)
 var NumTunes = 0
 
 var header = make([]byte, 124)
+
+func TuneIndexByPath(path string) int {
+	for i, tune := range Tunes {
+		if tune.Path == path {
+			return i
+		}
+	}
+	return -1
+}
 
 // Read tunes data from cache file
 func ReadTunesInfoCached() {
@@ -176,6 +186,7 @@ func ReadTunesInfo() {
 	FilterAll()
 
 	readSTIL()
+	readReleases()
 
 	removeDefaults()
 
@@ -272,15 +283,33 @@ func parseSongLength(value string) time.Duration {
 // Set default tune/header fields to empty values to reduce marshalling size
 func removeDefaults() {
 	for i, tune := range Tunes {
-		if tune.YearMax == tune.YearMin { tune.YearMax = 0 }
-		if tune.Header.MagicID == "PSID" { tune.Header.MagicID = "" }
-		if tune.Header.Version == 2 { tune.Header.Version = 0 }
-		if tune.Header.DataOffset == 124 { tune.Header.DataOffset = 0 }
-		if tune.Header.Songs == 1 { tune.Header.Songs = 0 }
-		if tune.Header.StartSong == 1 { tune.Header.StartSong = 0 }
-		if tune.Header.Name == "<?>" { tune.Header.Name = "" }
-		if tune.Header.Author == "<?>" { tune.Header.Author = "" }
-		if tune.Header.Released == "<?>" { tune.Header.Released = "" }
+		if tune.YearMax == tune.YearMin {
+			tune.YearMax = 0
+		}
+		if tune.Header.MagicID == "PSID" {
+			tune.Header.MagicID = ""
+		}
+		if tune.Header.Version == 2 {
+			tune.Header.Version = 0
+		}
+		if tune.Header.DataOffset == 124 {
+			tune.Header.DataOffset = 0
+		}
+		if tune.Header.Songs == 1 {
+			tune.Header.Songs = 0
+		}
+		if tune.Header.StartSong == 1 {
+			tune.Header.StartSong = 0
+		}
+		if tune.Header.Name == "<?>" {
+			tune.Header.Name = ""
+		}
+		if tune.Header.Author == "<?>" {
+			tune.Header.Author = ""
+		}
+		if tune.Header.Released == "<?>" {
+			tune.Header.Released = ""
+		}
 		Tunes[i] = tune
 	}
 }
@@ -289,12 +318,24 @@ func removeDefaults() {
 func addDefaults() {
 	for i, tune := range Tunes {
 		tune.Index = i
-		if tune.YearMax == 0 { tune.YearMax = tune.YearMin }
-		if tune.Header.MagicID == "" { tune.Header.MagicID = "PSID" }
-		if tune.Header.Version == 0 { tune.Header.Version = 2 }
-		if tune.Header.DataOffset == 0 { tune.Header.DataOffset = 124 }
-		if tune.Header.Songs == 0 { tune.Header.Songs = 1 }
-		if tune.Header.StartSong == 0 { tune.Header.StartSong = 1 }
+		if tune.YearMax == 0 {
+			tune.YearMax = tune.YearMin
+		}
+		if tune.Header.MagicID == "" {
+			tune.Header.MagicID = "PSID"
+		}
+		if tune.Header.Version == 0 {
+			tune.Header.Version = 2
+		}
+		if tune.Header.DataOffset == 0 {
+			tune.Header.DataOffset = 124
+		}
+		if tune.Header.Songs == 0 {
+			tune.Header.Songs = 1
+		}
+		if tune.Header.StartSong == 0 {
+			tune.Header.StartSong = 1
+		}
 		Tunes[i] = tune
 	}
 }
