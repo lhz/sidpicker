@@ -178,7 +178,7 @@ func drawHeader() {
 	bg := termbox.ColorBlack
 	switch mode {
 	case MODE_BROWSE:
-		header = fmt.Sprintf("Browse: %s", string(searchTerm))
+		header = fmt.Sprintf("Search: %s", string(searchTerm))
 		termbox.HideCursor()
 	case MODE_SEARCH:
 		header = fmt.Sprintf("Search: %s", string(searchTerm))
@@ -216,7 +216,7 @@ func drawTuneInfo() {
 		return
 	}
 
-	writeAt(ox, oy+6, " STIL: ", termbox.ColorWhite|termbox.AttrBold, termbox.ColorBlack)
+	writeAt(ox, oy+6, "STIL Information:", termbox.ColorYellow|termbox.AttrBold, termbox.ColorBlack)
 
 	for i, line := range tune.Info {
 		if oy+8+i > h-2 {
@@ -236,15 +236,27 @@ func drawReleases() {
 	}
 
 	ox := 42
-	oy := 11 + len(tune.Info)
+	oy := 8
+	mx := 0
+	if len(tune.Info) > 0 {
+		oy = oy + 3 + len(tune.Info)
+	}
+
 	//fg := termbox.ColorDefault
 	bg := termbox.ColorDefault
 
-	writeAt(ox, oy, " RELEASES: ", termbox.ColorWhite|termbox.AttrBold, termbox.ColorBlack)
+	line := fmt.Sprintf("Known Releases: %d", len(tune.Releases))
+	writeAt(ox, oy, line, termbox.ColorYellow|termbox.AttrBold, termbox.ColorBlack)
 
-	for i, r := range tune.Releases {
-		if oy+2+i*4+2 > h-2 {
-			break
+	oy += 2
+	y := oy
+
+	for i := 0; i < len(tune.Releases); i++ {
+		r := tune.Releases[len(tune.Releases)-i-1]
+		if y+2 > h-2 {
+			ox += mx + 3
+			y = oy
+			mx = 0
 		}
 		credits := make([]string, 0)
 		if r.Year != "" {
@@ -253,9 +265,19 @@ func drawReleases() {
 		if r.Group != "" {
 			credits = append(credits, r.Group)
 		}
-		writeAt(ox, oy+2+i*4, r.Name, termbox.ColorWhite, bg)
-		writeAt(ox, oy+2+i*4+1, strings.Join(credits, " by "), termbox.ColorMagenta, bg)
-		writeAt(ox, oy+2+i*4+2, r.URL(), termbox.ColorBlue, bg)
+
+		writeAt(ox, y, r.Name, termbox.ColorWhite, bg)
+		if len(r.Name) > mx { mx = len(r.Name) }
+
+		byline := strings.Join(credits, " by ")
+		writeAt(ox, y+1, byline, termbox.ColorMagenta, bg)
+		if len(byline) > mx { mx = len(byline) }
+
+		url := r.URL()
+		writeAt(ox, y+2, url, termbox.ColorBlue, bg)
+		if len(url) > mx { mx = len(url) }
+
+		y += 4
 	}
 }
 
