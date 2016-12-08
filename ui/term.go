@@ -168,6 +168,7 @@ func draw() {
 	drawHeader()
 	drawList()
 	drawTuneInfo()
+	drawReleases()
 	drawFooter()
 	termbox.Flush()
 }
@@ -211,11 +212,50 @@ func drawTuneInfo() {
 	writeAt(ox, oy+4, fmt.Sprintf("Tune: %d/%d  Length: %s  Time: %s",
 		player.CurrentSong, tune.Header.Songs, player.SongLength(), player.Elapsed()), fg, bg)
 
+	if len(tune.Info) == 0 {
+		return
+	}
+
+	writeAt(ox, oy+6, " STIL: ", termbox.ColorWhite|termbox.AttrBold, termbox.ColorBlack)
+
 	for i, line := range tune.Info {
-		if oy+6+i > h-2 {
+		if oy+8+i > h-2 {
 			break
 		}
-		writeAt(ox, oy+6+i, line, fg, bg)
+		writeAt(ox, oy+8+i, line, fg, bg)
+	}
+}
+
+func drawReleases() {
+	if !player.Playing {
+		return
+	}
+	tune := player.CurrentTune
+	if len(tune.Releases) == 0 {
+		return
+	}
+
+	ox := 42
+	oy := 11 + len(tune.Info)
+	//fg := termbox.ColorDefault
+	bg := termbox.ColorDefault
+
+	writeAt(ox, oy, " RELEASES: ", termbox.ColorWhite|termbox.AttrBold, termbox.ColorBlack)
+
+	for i, r := range tune.Releases {
+		if oy+2+i*4+2 > h-2 {
+			break
+		}
+		credits := make([]string, 0)
+		if r.Year != "" {
+			credits = append(credits, r.Year)
+		}
+		if r.Group != "" {
+			credits = append(credits, r.Group)
+		}
+		writeAt(ox, oy+2+i*4, r.Name, termbox.ColorWhite, bg)
+		writeAt(ox, oy+2+i*4+1, strings.Join(credits, " by "), termbox.ColorMagenta, bg)
+		writeAt(ox, oy+2+i*4+2, r.URL(), termbox.ColorBlue, bg)
 	}
 }
 

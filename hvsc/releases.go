@@ -2,6 +2,7 @@ package hvsc
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -14,6 +15,10 @@ type Release struct {
 	Name  string `json:"name"`
 	Group string `json:"group"`
 	Year  string `json:"year"`
+}
+
+func (r *Release) URL() string {
+	return fmt.Sprintf("http://csdb.dk/release/?id=%d", r.Id)
 }
 
 func readReleases() {
