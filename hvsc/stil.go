@@ -25,17 +25,20 @@ func readSTIL() {
 		if len(line) == 0 || line[0] == '#' {
 			continue
 		}
-		if line[0] == '/' && line[len(line)-4:] == ".sid" {
-			tuneIndex = tuneIndexByPath(line) //, tuneIndex+1)
-			if tuneIndex < 0 {
-				log.Fatalf("Unknown path in file %s: %s", SongInfoFile, line)
-			}
+		if line[0] == '/' {
 			if tune != nil {
 				tune.Info = info
+				tune = nil
 			}
-			tune = &Tunes[tuneIndex]
-			info = make([]string, 0)
-		} else {
+			if line[len(line)-4:] == ".sid" {
+				tuneIndex = tuneIndexByPath(line) //, tuneIndex+1)
+				if tuneIndex < 0 {
+					log.Fatalf("Unknown path in file %s: %s", SongInfoFile, line)
+				}
+				tune = &Tunes[tuneIndex]
+				info = make([]string, 0)
+			}
+		} else if tune != nil {
 			info = append(info, line)
 		}
 	}
