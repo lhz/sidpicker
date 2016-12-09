@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"strings"
@@ -104,10 +105,10 @@ func keyEvent(ev termbox.Event) {
 	case termbox.KeyArrowRight:
 		player.NextSong()
 	case termbox.KeyEnter:
-		player.Play(list.CurrentItem().TuneIndex, 1)
+		player.Play(list.CurrentItem().TuneIndex, -1)
 	case termbox.KeySpace:
 		list.NextTune()
-		player.Play(list.CurrentItem().TuneIndex, 1)
+		player.Play(list.CurrentItem().TuneIndex, -1)
 	case termbox.KeyDelete:
 		player.Stop()
 	case 0:
@@ -253,11 +254,7 @@ func drawReleases() {
 
 	for i := 0; i < len(tune.Releases); i++ {
 		r := tune.Releases[len(tune.Releases)-i-1]
-		if y+2 > h-2 {
-			ox += mx + 3
-			y = oy
-			mx = 0
-		}
+
 		credits := make([]string, 0)
 		if r.Year != "" {
 			credits = append(credits, r.Year)
@@ -266,18 +263,26 @@ func drawReleases() {
 			credits = append(credits, r.Group)
 		}
 
+		bylines := lineSplit(strings.Join(credits, " by "), 36)
+		if y+len(bylines)+1 > h-2 {
+			ox += mx + 3
+			y = oy
+			mx = 0
+		}
+
 		writeAt(ox, y, r.Name, termbox.ColorWhite, bg)
 		if len(r.Name) > mx { mx = len(r.Name) }
 
-		byline := strings.Join(credits, " by ")
-		writeAt(ox, y+1, byline, termbox.ColorMagenta, bg)
-		if len(byline) > mx { mx = len(byline) }
+		for j, byline := range bylines {
+			writeAt(ox, y+j+1, byline, termbox.ColorMagenta, bg)
+			if len(byline) > mx { mx = len(byline) }
+		}
 
 		url := r.URL()
-		writeAt(ox, y+2, url, termbox.ColorBlue, bg)
+		writeAt(ox, y+len(bylines)+1, url, termbox.ColorBlue, bg)
 		if len(url) > mx { mx = len(url) }
 
-		y += 4
+		y += 3+len(bylines)
 	}
 }
 
@@ -312,4 +317,22 @@ func writeAt(x, y int, value string, fg, bg termbox.Attribute) {
 		termbox.SetCell(x+i, y, c, fg, bg)
 		i++
 	}
+}
+
+func lineSplit(s string, w int) []string {
+	words := strings.Fields(s)
+	lines := make([]string, 0)
+	line := bytes.Buffer{}
+	for _, word := range words {
+		if line.Len() > 0 && line.Len() + len(word) > w {
+			lines = append(lines, line.String())
+			line = bytes.Buffer{}
+		}
+		if line.Len() > 0 {
+			line.WriteRune(' ')
+		}
+		line.WriteString(word)
+	}
+	lines = append(lines, line.String())
+	return lines
 }

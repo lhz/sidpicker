@@ -57,6 +57,9 @@ func Run() {
 
 func PlaySub(subTune int) {
 	Stop()
+	if subTune < 1 {
+		subTune = CurrentTune.Header.StartSong
+	}
 	Playing = true
 	CurrentSong = subTune
 	MsgChan <- PlayerMsg{Command: PLAY_COMMAND, Args: []string{CurrentTune.FullPath(), strconv.Itoa(subTune)}}
@@ -66,6 +69,9 @@ func Play(index, subTune int) {
 	Stop()
 	tune := hvsc.FilteredTunes[index]
 	CurrentTune = &tune
+	if subTune < 1 {
+		subTune = tune.Header.StartSong
+	}
 	CurrentSong = subTune
 	Playing = true
 	MsgChan <- PlayerMsg{Command: PLAY_COMMAND, Args: []string{tune.FullPath(), strconv.Itoa(subTune)}}

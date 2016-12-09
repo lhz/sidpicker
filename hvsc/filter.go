@@ -82,16 +82,18 @@ func valueByFilterPrefix(tune *SidTune, prefix byte) string {
 	switch prefix {
 	case 'a':
 		return tune.Header.Author
+	case 'c':
+		return tune.Header.Released
 	case 'n':
 		return tune.Header.Name
 	case 'p':
 		return tune.Path
-	case 'r':
-		return tune.Header.Released
 	case 's':
-		return strings.Join(tune.Info, " ")
+		return tune.InfoFilterText()
 	case 't':
 		return tune.Header.Name
+	case 'u':
+		return tune.ReleasesFilterText()
 	}
 	return ""
 }

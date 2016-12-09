@@ -2,6 +2,7 @@ package hvsc
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -78,6 +79,25 @@ func (tune *SidTune) ListName() string {
 		ext := filepath.Ext(name)
 		return name[0 : len(name)-len(ext)]
 	}
+}
+
+func (tune *SidTune) InfoFilterText() string {
+	return strings.Join(tune.Info, " ")
+}
+
+func (tune *SidTune) ReleasesFilterText() string {
+	text := bytes.Buffer{}
+	for _, r := range tune.Releases {
+		if text.Len() > 0 {
+			text.WriteString(", ")
+		}
+		text.WriteString(r.Name)
+		if len(r.Group) > 0 {
+			text.WriteString(", ")
+			text.WriteString(r.Group)
+		}
+	}
+	return text.String()
 }
 
 func (tune *SidTune) Year() string {
