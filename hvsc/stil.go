@@ -3,23 +3,24 @@ package hvsc
 import (
 	"bufio"
 	"log"
-	"os"
+	"strings"
+
+	"github.com/lhz/considerate/util"
 )
 
 const SongInfoFile = "DOCUMENTS/STIL.txt"
 
 func readSTIL() {
-	file, err := os.Open(hvscPathTo(SongInfoFile))
+	content, err := util.ReadLatin1File(hvscPathTo(SongInfoFile))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to read STIL file: %s", err)
 	}
-	defer file.Close()
 
 	var tune *SidTune
 	var info []string
 	var tuneIndex = -1
 
-	scanner := bufio.NewScanner(file)
+	scanner := bufio.NewScanner(strings.NewReader(content))
 	for scanner.Scan() {
 		line := scanner.Text()
 		if len(line) == 0 || line[0] == '#' {

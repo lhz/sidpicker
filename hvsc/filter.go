@@ -27,7 +27,7 @@ func Filter(terms string) bool {
 
 func filterTune(tune *SidTune, terms string) bool {
 	exclude := false
-	for _, term := range strings.Split(terms, " ") {
+	for _, term := range strings.Split(terms, ",") {
 		if len(term) > 1 && term[1] == ':' {
 			prefix := term[0]
 			term = term[2:]
