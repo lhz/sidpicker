@@ -11,8 +11,8 @@ run: $(consid)
 godeps:
 	go get -d ./...
 
-$(consid): command/consid.go config/*.go ui/*.go hvsc/*.go player/*.go
+$(consid): cmd/consid.go config/*.go ui/*.go hvsc/*.go player/*.go
 	go build -o $@ $<
 
-$(usedex): command/usedex.go config/*.go
+$(usedex): cmd/usedex.go config/*.go
 	go build -o $@ $<
