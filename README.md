@@ -26,10 +26,10 @@ setx HVSC_BASE C:\Download\C64Music
 
 #### sidplayfp
 
-The configuration file `sidplayfp.ini` needs to be edited to point to the C-64 ROM dumps, since many
+The sidplayfp configuration file needs to be edited to point to the C-64 ROM dumps, since many
 SID tunes contain code that rely on these to run properly.
 
-Linux:
+On Linux, edit the file `~/.config/sidplayfp/sidplayfp.ini`:
 ```
 Kernal Rom = /usr/local/lib64/vice/C64/kernal
 Basic Rom = /usr/local/lib64/vice/C64/basic
