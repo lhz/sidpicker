@@ -31,14 +31,14 @@ Copy the file `cache-tunes.json` into the `HVSC_BASE` directory.
 The sidplayfp configuration file needs to be edited to point to the C-64 ROM dumps, since many
 SID tunes contain code that rely on these to run properly.
 
-On Linux/MacOs, edit the file `~/.config/sidplayfp/sidplayfp.ini`:
+On Linux or MacOS, edit the file `~/.config/sidplayfp/sidplayfp.ini`:
 ```
 Kernal Rom = /usr/local/lib64/vice/C64/kernal
 Basic Rom = /usr/local/lib64/vice/C64/basic
 Chargen Rom = /usr/local/lib64/vice/C64/chargen
 ```
 
-On WIndows, edit the file `%appdata%\sidplayfp\sidplayfp.ini`:
+On Windows, edit the file `%appdata%\sidplayfp\sidplayfp.ini`:
 ```
 Kernal Rom = C:\C64\vice\C64\kernal
 Basic Rom = C:\C64\vice\C64\basic
