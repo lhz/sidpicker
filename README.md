@@ -1,5 +1,5 @@
 # sidpicker
-Terminal interface for browsing [HVSC](http://www.hvsc.c64.org/) and playing SID tunes therein.
+Terminal interface for browsing/searching [HVSC](http://www.hvsc.c64.org/) and playing SID tunes.
 
 ## Requirements
 
