@@ -51,14 +51,17 @@ Simply run `sidpicker` in your terminal to start. At startup it will read the tu
 
 ### Keyboard input
 
-   - Up arrow: move up one position in the list
-   - Down arrow: move down one position in the list
-   - Page up: scroll the list one page up
-   - Page down: scroll the list one page down
-   - Enter: play the currently selected entry in the list
-   - Space: play the next entry in the list
-   - Escape: if a tune is playing, stop playing. otherwise, exit sidpicker.
-   - /: Edit search query
+   - `arrow down` - move down one position in the list
+   - `arrow up` - move up one position in the list
+   - `page down` - scroll the list one page down
+   - `page up` - scroll the list one page up
+   - `enter` - play the currently selected entry in the list
+   - `space` - play the next entry in the list
+   - `escape` - if a tune is playing, stop playing. otherwise, exit sidpicker
+   - `/` - Edit search query (use cursor keys and backspace, `enter` when done)
+   - `1-9` - Play specific subtune
+   - `arrow right` - Play next subtune
+   - `arrow left` - Play previous subtune
 
 ### Search query
 
