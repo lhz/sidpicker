@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/lhz/considerate/config"
-	"github.com/lhz/considerate/hvsc"
-	"github.com/lhz/considerate/player"
-	"github.com/lhz/considerate/ui"
+	"github.com/lhz/sidpicker/config"
+	"github.com/lhz/sidpicker/hvsc"
+	"github.com/lhz/sidpicker/player"
+	"github.com/lhz/sidpicker/ui"
 
 	"log"
 	"sync"

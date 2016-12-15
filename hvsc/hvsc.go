@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lhz/considerate/config"
+	"github.com/lhz/sidpicker/config"
 )
 
 const (

@@ -1,18 +1,15 @@
-consid=$(GOPATH)/bin/consid
-usedex=$(GOPATH)/bin/consid_used_extract
+sidpicker=$(GOPATH)/bin/sidpicker
+extract=$(GOPATH)/bin/sid_release_extract
 
 default: all
 
-all: $(consid) $(usedex)
+all: $(sidpicker) $(extract)
 
-run: $(consid)
-	$^
+$(sidpicker): cmd/sidpicker.go config/*.go ui/*.go hvsc/*.go player/*.go
+	go build -o $@ $<
+
+$(extract): cmd/sid_release_extract.go config/*.go
+	go build -o $@ $<
 
 godeps:
 	go get -d ./...
-
-$(consid): cmd/consid.go config/*.go ui/*.go hvsc/*.go player/*.go
-	go build -o $@ $<
-
-$(usedex): cmd/usedex.go config/*.go
-	go build -o $@ $<

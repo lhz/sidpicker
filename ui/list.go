@@ -3,7 +3,7 @@ package ui
 import (
 	"path/filepath"
 
-	"github.com/lhz/considerate/hvsc"
+	"github.com/lhz/sidpicker/hvsc"
 )
 
 type List struct {

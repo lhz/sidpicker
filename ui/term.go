@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lhz/considerate/hvsc"
-	"github.com/lhz/considerate/player"
+	"github.com/lhz/sidpicker/hvsc"
+	"github.com/lhz/sidpicker/player"
 	"github.com/nsf/termbox-go"
 )
 

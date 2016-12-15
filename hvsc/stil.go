@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/lhz/considerate/util"
+	"github.com/lhz/sidpicker/util"
 )
 
 const SongInfoFile = "DOCUMENTS/STIL.txt"

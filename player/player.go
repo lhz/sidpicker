@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/lhz/considerate/hvsc"
+	"github.com/lhz/sidpicker/hvsc"
 )
 
 const (
