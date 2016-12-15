@@ -11,7 +11,7 @@ Terminal interface for browsing [HVSC](http://www.hvsc.c64.org/) and playing SID
 
 #### Environment variables
 
-The HVSC_BASE environment variable must be set to point to the base directory of your extracted HVSC installation.
+The `HVSC_BASE` environment variable must be set to point to the base directory of your extracted HVSC installation.
 
 Examples:
 
