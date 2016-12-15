@@ -75,13 +75,13 @@ the phrase you entered is included in either the title, author, released or STIL
 
 The advanced type uses a prefix notation to allow filtering on specific fields and related data:
 
-  - a:string - Author field must include the given string
-  - n:string - Title field must include the given string (t:string also works)
-  - c:string - Released field must include the given string
-  - p:string - The path within HVSC must include the given string
-  - s:string - STIL information must include the given string
-  - u:string - CSDb "releases used" must include the given string
-  - y:range  - Release year of the tune must be contained in or overlap the given year range
+  - `a:string` - Author field must include the given string
+  - `n:string` - Title field must include the given string (t:string also works)
+  - `c:string` - Released field must include the given string
+  - `p:string` - The path within HVSC must include the given string
+  - `s:string` - STIL information must include the given string
+  - `u:string` - CSDb "releases used" must include the given string
+  - `y:range`  - Release year of the tune must be contained in or overlap the given year range
   
 Year ranges can be a single year, an open interval or a closed interval. Years can be entered with 4 or 2 digits. When 2 digits is used, 70 or above is interpreted as 19xx while a number below 70 is interpreted as 20xx.
 
