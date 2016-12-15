@@ -26,7 +26,8 @@ setx HVSC_BASE C:\Download\C64Music
 
 #### sidplayfp
 
-The configuration file `sidplayfp.ini` needs to be edited to point to the C-64 ROM dumps, since many SID drivers rely on these to run properly.
+The configuration file `sidplayfp.ini` needs to be edited to point to the C-64 ROM dumps, since many
+SID tunes contain code that rely on these to run properly.
 
 Linux:
 ```
