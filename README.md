@@ -4,7 +4,7 @@ Terminal interface for browsing/searching [HVSC](http://www.hvsc.c64.org/) and p
 ## Requirements
 
 - High Voltage SID Collection (download [here](http://www.hvsc.c64.org/#download))
-- sidplayerfp  (download [here](https://sourceforge.net/projects/sidplay-residfp/files/sidplayfp/1.4/))
+- sidplayfp  (download [here](https://sourceforge.net/projects/sidplay-residfp/files/sidplayfp/1.4/))
 - C-64 ROM dumps (basic, kernal and chargen) (download [here](https://sourceforge.net/p/vice-emu/code/HEAD/tree/trunk/vice/data/C64/))
 
 ## Setup
