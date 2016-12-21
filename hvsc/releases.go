@@ -19,7 +19,9 @@ type Release struct {
 	Id    int    `json:"id"`
 	Name  string `json:"name"`
 	Group string `json:"group"`
+	Year  string `json:"date"`
 	Date  string `json:"date"`
+	Type  string `json:"type"`
 }
 
 func (r *Release) URL() string {
@@ -59,7 +61,7 @@ func readReleases() {
 	}
 }
 
-func readReleaseXML(path) {
+func readReleaseXML(path string) {
 	doc := etree.NewDocument()
 	err := doc.ReadFromFile(path)
 	if err != nil {
@@ -70,14 +72,16 @@ func readReleaseXML(path) {
 		return
 	}
 
-	rel := doc.SelectElement("CSDbData/Release")
-
+	//rel := doc.SelectElement("CSDbData/Release")
 }
 
 func parseRelease(e *etree.Element) *Release {
 	var err error
 	r := Release{}
 	r.Id, err = strconv.Atoi(e.SelectElement("ID").Text())
+	if err != nil {
+		log.Fatal(err)
+	}
 	r.Name = e.SelectElement("Name").Text()
 	r.Type = e.SelectElement("Type").Text()
 	date := bytes.Buffer{}
@@ -98,4 +102,6 @@ func parseRelease(e *etree.Element) *Release {
 		date.WriteString("-xx")
 	}
 	r.Date = date.String()
+
+	return &r
 }
