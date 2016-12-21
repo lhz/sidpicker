@@ -1,6 +1,8 @@
 package hvsc
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -8,7 +10,7 @@ import (
 	"os"
 )
 
-const ReleasesUsedFile = "sid-releases-used.json"
+const ReleasesUsedFile = "releases.json.gz"
 
 type Release struct {
 	Id    int    `json:"id"`
@@ -28,17 +30,22 @@ func readReleases() {
 	}
 
 	log.Print("Reading sid release usage info.")
-	content, err := ioutil.ReadFile(hvscPathTo(ReleasesUsedFile))
+
+	dataGzip, err := ioutil.ReadFile(hvscPathTo(ReleasesUsedFile))
+	if err != nil {
+		log.Fatal(err)
+	}
+	r, err := gzip.NewReader(bytes.NewBuffer(dataGzip))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	uses := make(map[string][]Release, NumTunes)
-	err = json.Unmarshal(content, &uses)
+	err = json.NewDecoder(r).Decode(&uses)
 	if err != nil {
 		log.Fatalf("Failed to read sid release used file: %s", err)
 	}
-	log.Printf("Release usage read for %d tunes (%d bytes)", len(uses), len(content))
+	log.Printf("Release usage read for %d tunes.", len(uses))
 
 	for path, releases := range uses {
 		tuneIndex := TuneIndexByPath(path)

@@ -3,6 +3,7 @@ package hvsc
 import (
 	"bufio"
 	"bytes"
+	"compress/gzip"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -20,7 +21,7 @@ import (
 
 const (
 	SongLengthsFile = "DOCUMENTS/Songlengths.txt"
-	TunesCacheFile  = "cache-tunes.json"
+	TunesCacheFile  = "cache-tunes.json.gz"
 	DefaultTitle    = "<?>"
 )
 
@@ -156,12 +157,16 @@ func ReadTunesInfoCached() {
 	}
 
 	log.Print("Reading cached tunes info.")
-	content, err := ioutil.ReadFile(hvscPathTo(TunesCacheFile))
+	dataGzip, err := ioutil.ReadFile(hvscPathTo(TunesCacheFile))
+	if err != nil {
+		log.Fatal(err)
+	}
+	r, err := gzip.NewReader(bytes.NewBuffer(dataGzip))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	json.Unmarshal(content, &Tunes)
+	json.NewDecoder(r).Decode(&Tunes)
 	NumTunes = len(Tunes)
 
 	addDefaults()
@@ -210,17 +215,23 @@ func ReadTunesInfo() {
 
 	removeDefaults()
 
-	b, err := json.MarshalIndent(Tunes, "", "  ")
+	dataJson, err := json.MarshalIndent(Tunes, "", "  ")
 	if err != nil {
 		log.Fatal(err)
 	}
-	cacheFile, err := os.Create(hvscPathTo(TunesCacheFile))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer cacheFile.Close()
 
-	cacheFile.Write(b)
+	var dataGzip bytes.Buffer
+	w := gzip.NewWriter(&dataGzip)
+	_, err = w.Write(dataJson)
+	if err != nil {
+		log.Fatal(err)
+	}
+	w.Close()
+
+	err = ioutil.WriteFile(hvscPathTo(TunesCacheFile), dataGzip.Bytes(), 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func ReadSidHeader(fileName string) SidHeader {
