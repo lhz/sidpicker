@@ -84,7 +84,7 @@ func (r *Release) getDate() string {
 
 func (r *Release) getGroups() []string {
 	elems := r.elem.FindElements("ReleasedBy/Group/Name")
-	log.Printf("Found %d group names.", len(elems))
+	//log.Printf("Found %d group names.", len(elems))
 	groups := make([]string, 0)
 	for _, e := range elems {
 		groups = append(groups, e.Text())
@@ -94,7 +94,7 @@ func (r *Release) getGroups() []string {
 
 func (r *Release) getSIDs() []string {
 	elems := r.elem.FindElements("UsedSIDs/SID/HVSCPath")
-	log.Printf("Found %d used sids.", len(elems))
+	//log.Printf("Found %d used sids.", len(elems))
 	sids := make([]string, 0)
 	for _, e := range elems {
 		sids = append(sids, e.Text())
