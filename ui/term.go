@@ -25,13 +25,18 @@ var searchTerm []rune
 var searchCursorPos int
 var quit = false
 
-func Setup() {
+func Setup(initialSearch string) {
 	err := termbox.Init()
 	if err != nil {
 		log.Panicln(err)
 	}
 
 	w, h = termbox.Size()
+
+	if len(initialSearch) > 0 {
+		searchTerm = []rune(initialSearch)
+		hvsc.Filter(string(searchTerm))
+	}
 
 	list = NewList(h - 2)
 

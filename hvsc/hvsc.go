@@ -156,7 +156,7 @@ func ReadTunesInfoCached() {
 		return
 	}
 
-	log.Print("Reading cached tunes info.")
+	//log.Print("Reading cached tunes info.")
 	dataGzip, err := ioutil.ReadFile(tunesCachePath())
 	if err != nil {
 		log.Fatal(err)
@@ -374,7 +374,9 @@ func addDefaults() {
 func readReleases() {
 	csdb.ReadReleases()
 	for _, release := range csdb.Releases {
-		for _, path := range release.SIDs {
+		sids := release.SIDs
+		release.SIDs = nil
+		for _, path := range sids {
 			tuneIndex := TuneIndexByPath(path)
 			if tuneIndex < 0 {
 				log.Printf("Unknown path: %s", path)
