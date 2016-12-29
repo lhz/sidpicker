@@ -3,13 +3,12 @@ package main
 import (
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/lhz/sidpicker/config"
 	"github.com/lhz/sidpicker/hvsc"
 	"github.com/lhz/sidpicker/player"
 	"github.com/lhz/sidpicker/ui"
-
-	"sync"
 )
 
 var workerGroup sync.WaitGroup
