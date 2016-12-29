@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/lhz/sidpicker/config"
+	"github.com/lhz/sidpicker/csdb"
 )
 
 const (
@@ -211,7 +212,7 @@ func ReadTunesInfo() {
 	FilterAll()
 
 	readSTIL()
-	readReleases()
+	csdb.ReadReleases()
 
 	removeDefaults()
 

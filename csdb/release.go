@@ -2,12 +2,18 @@ package csdb
 
 import (
 	"bytes"
+	"compress/gzip"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 
 	"github.com/beevik/etree"
 )
+
+const ReleasesUsedFile = "releases.json.gz"
 
 type Release struct {
 	ID     int      `json:"id"`
@@ -19,7 +25,42 @@ type Release struct {
 	elem   *etree.Element
 }
 
-func ReadRelease(path string) *Release {
+func ReadReleases() {
+	if _, err := os.Stat(hvsc.hvscPathTo(ReleasesUsedFile)); os.IsNotExist(err) {
+		log.Println(err)
+		return
+	}
+
+	log.Print("Reading sid release usage info.")
+
+	dataGzip, err := ioutil.ReadFile(hvscPathTo(ReleasesUsedFile))
+	if err != nil {
+		log.Fatal(err)
+	}
+	r, err := gzip.NewReader(bytes.NewBuffer(dataGzip))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	releases := make(map[string][]Release, 0)
+	err = json.NewDecoder(r).Decode(&releases)
+	if err != nil {
+		log.Fatalf("Failed to read sid release used file: %s", err)
+	}
+	log.Printf("Read %d releases.", len(releases))
+
+	for _, release := range release {
+		for _, path := range release.SIDs {
+			tuneIndex := TuneIndexByPath(path)
+			if tuneIndex < 0 {
+				log.Fatalf("Unknown path: %s", path)
+			}
+			Tunes[tuneIndex].Releases = append(Tunes[tuneIndex].Releases, release)
+		}
+	}
+}
+
+func ReadReleaseXML(path string) *Release {
 	doc := etree.NewDocument()
 	err := doc.ReadFromFile(path)
 	if err != nil {
