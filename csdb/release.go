@@ -8,9 +8,11 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/beevik/etree"
+	"github.com/lhz/sidpicker/config"
 )
 
 const ReleasesUsedFile = "releases.json.gz"
@@ -25,15 +27,25 @@ type Release struct {
 	elem   *etree.Element
 }
 
+func (r *Release) URL() string {
+	return fmt.Sprintf("http://csdb.dk/release/?id=%d", r.ID)
+}
+
+var Releases = make([]Release, 0)
+
+func ReleasesPath() string {
+	return filepath.Join(config.Config.AppBase, ReleasesUsedFile)
+}
+
 func ReadReleases() {
-	if _, err := os.Stat(hvsc.hvscPathTo(ReleasesUsedFile)); os.IsNotExist(err) {
+	if _, err := os.Stat(ReleasesPath()); os.IsNotExist(err) {
 		log.Println(err)
 		return
 	}
 
 	log.Print("Reading sid release usage info.")
 
-	dataGzip, err := ioutil.ReadFile(hvscPathTo(ReleasesUsedFile))
+	dataGzip, err := ioutil.ReadFile(ReleasesPath())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -42,22 +54,11 @@ func ReadReleases() {
 		log.Fatal(err)
 	}
 
-	releases := make(map[string][]Release, 0)
-	err = json.NewDecoder(r).Decode(&releases)
+	err = json.NewDecoder(r).Decode(&Releases)
 	if err != nil {
 		log.Fatalf("Failed to read sid release used file: %s", err)
 	}
-	log.Printf("Read %d releases.", len(releases))
-
-	for _, release := range release {
-		for _, path := range release.SIDs {
-			tuneIndex := TuneIndexByPath(path)
-			if tuneIndex < 0 {
-				log.Fatalf("Unknown path: %s", path)
-			}
-			Tunes[tuneIndex].Releases = append(Tunes[tuneIndex].Releases, release)
-		}
-	}
+	log.Printf("Read %d releases.", len(Releases))
 }
 
 func ReadReleaseXML(path string) *Release {

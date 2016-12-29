@@ -256,11 +256,11 @@ func drawReleases() {
 		r := tune.Releases[len(tune.Releases)-i-1]
 
 		credits := make([]string, 0)
-		if r.Year != "" {
-			credits = append(credits, r.Year)
+		if r.Date != "" {
+			credits = append(credits, r.Date)
 		}
-		if r.Group != "" {
-			credits = append(credits, r.Group)
+		if len(r.Groups) > 0 {
+			credits = append(credits, strings.Join(r.Groups, ", "))
 		}
 
 		bylines := lineSplit(strings.Join(credits, " by "), 36)
@@ -271,18 +271,24 @@ func drawReleases() {
 		}
 
 		writeAt(ox, y, r.Name, termbox.ColorWhite, bg)
-		if len(r.Name) > mx { mx = len(r.Name) }
+		if len(r.Name) > mx {
+			mx = len(r.Name)
+		}
 
 		for j, byline := range bylines {
 			writeAt(ox, y+j+1, byline, termbox.ColorMagenta, bg)
-			if len(byline) > mx { mx = len(byline) }
+			if len(byline) > mx {
+				mx = len(byline)
+			}
 		}
 
 		url := r.URL()
 		writeAt(ox, y+len(bylines)+1, url, termbox.ColorBlue, bg)
-		if len(url) > mx { mx = len(url) }
+		if len(url) > mx {
+			mx = len(url)
+		}
 
-		y += 3+len(bylines)
+		y += 3 + len(bylines)
 	}
 }
 
@@ -324,7 +330,7 @@ func lineSplit(s string, w int) []string {
 	lines := make([]string, 0)
 	line := bytes.Buffer{}
 	for _, word := range words {
-		if line.Len() > 0 && line.Len() + len(word) > w {
+		if line.Len() > 0 && line.Len()+len(word) > w {
 			lines = append(lines, line.String())
 			line = bytes.Buffer{}
 		}

@@ -22,7 +22,7 @@ import (
 
 const (
 	SongLengthsFile = "DOCUMENTS/Songlengths.txt"
-	TunesCacheFile  = "cache-tunes.json.gz"
+	TunesCacheFile  = "tunes.json.gz"
 	DefaultTitle    = "<?>"
 )
 
@@ -51,7 +51,7 @@ type SidTune struct {
 	Path        string          `json:"path"`
 	SongLengths []time.Duration `json:"lengths"`
 	Info        []string        `json:"info,omitempty"`
-	Releases    []Release       `json:"releases,omitempty"`
+	Releases    []csdb.Release  `json:"releases,omitempty"`
 	YearMin     int             `json:"year"`
 	YearMax     int             `json:"ymax,omitempty"`
 	Header      SidHeader       `json:"header"`
@@ -94,9 +94,8 @@ func (tune *SidTune) ReleasesFilterText() string {
 			text.WriteString(", ")
 		}
 		text.WriteString(r.Name)
-		if len(r.Group) > 0 {
-			text.WriteString(", ")
-			text.WriteString(r.Group)
+		if len(r.Groups) > 0 {
+			text.WriteString(strings.Join(r.Groups, ", "))
 		}
 	}
 	return text.String()
@@ -152,13 +151,13 @@ func TuneIndexByPath(path string) int {
 
 // Read tunes data from cache file
 func ReadTunesInfoCached() {
-	if _, err := os.Stat(hvscPathTo(TunesCacheFile)); os.IsNotExist(err) {
+	if _, err := os.Stat(tunesCachePath()); os.IsNotExist(err) {
 		ReadTunesInfo()
 		return
 	}
 
 	log.Print("Reading cached tunes info.")
-	dataGzip, err := ioutil.ReadFile(hvscPathTo(TunesCacheFile))
+	dataGzip, err := ioutil.ReadFile(tunesCachePath())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -212,7 +211,7 @@ func ReadTunesInfo() {
 	FilterAll()
 
 	readSTIL()
-	csdb.ReadReleases()
+	readReleases()
 
 	removeDefaults()
 
@@ -229,7 +228,7 @@ func ReadTunesInfo() {
 	}
 	w.Close()
 
-	err = ioutil.WriteFile(hvscPathTo(TunesCacheFile), dataGzip.Bytes(), 0644)
+	err = ioutil.WriteFile(tunesCachePath(), dataGzip.Bytes(), 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -370,4 +369,22 @@ func addDefaults() {
 		}
 		Tunes[i] = tune
 	}
+}
+
+func readReleases() {
+	csdb.ReadReleases()
+	for _, release := range csdb.Releases {
+		for _, path := range release.SIDs {
+			tuneIndex := TuneIndexByPath(path)
+			if tuneIndex < 0 {
+				log.Printf("Unknown path: %s", path)
+				continue
+			}
+			Tunes[tuneIndex].Releases = append(Tunes[tuneIndex].Releases, release)
+		}
+	}
+}
+
+func tunesCachePath() string {
+	return filepath.Join(config.Config.AppBase, TunesCacheFile)
 }
