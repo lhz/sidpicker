@@ -113,9 +113,11 @@ func keyEvent(ev termbox.Event) {
 		player.NextSong()
 	case termbox.KeyEnter:
 		player.Play(list.CurrentItem().TuneIndex, -1)
+		sort.Sort(csdb.ByDate(player.CurrentTune.Releases))
 	case termbox.KeySpace:
 		list.NextTune()
 		player.Play(list.CurrentItem().TuneIndex, -1)
+		sort.Sort(csdb.ByDate(player.CurrentTune.Releases))
 	case termbox.KeyDelete:
 		player.Stop()
 	case 0:
@@ -258,8 +260,6 @@ func drawReleases() {
 
 	oy += 2
 	y := oy
-
-	sort.Sort(csdb.ByDate(tune.Releases))
 
 	for _, r := range tune.Releases {
 
