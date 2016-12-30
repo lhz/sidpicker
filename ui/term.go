@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
+	"github.com/lhz/sidpicker/csdb"
 	"github.com/lhz/sidpicker/hvsc"
 	"github.com/lhz/sidpicker/player"
 	"github.com/nsf/termbox-go"
@@ -257,8 +259,9 @@ func drawReleases() {
 	oy += 2
 	y := oy
 
-	for i := 0; i < len(tune.Releases); i++ {
-		r := tune.Releases[len(tune.Releases)-i-1]
+	sort.Sort(csdb.ByDate(tune.Releases))
+
+	for _, r := range tune.Releases {
 
 		credits := make([]string, 0)
 		if r.Date != "" {

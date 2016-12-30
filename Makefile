@@ -5,7 +5,7 @@ default: all
 
 all: $(sidpicker) $(extract)
 
-$(sidpicker): cmd/sidpicker.go config/*.go ui/*.go hvsc/*.go player/*.go
+$(sidpicker): cmd/sidpicker.go config/*.go ui/*.go hvsc/*.go player/*.go csdb/*.go
 	go build -o $@ $<
 
 $(extract): cmd/sid_release_extract.go config/*.go
