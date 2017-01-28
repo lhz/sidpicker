@@ -61,7 +61,7 @@ func Run() {
 	}()
 
 	for !quit {
-		debugInfo = ""
+		// debugInfo = ""
 		select {
 		case ev := <-eventChan:
 			switch ev.Type {
@@ -170,13 +170,20 @@ func keyEventSearch(ev termbox.Event) {
 }
 
 func mouseEvent(ev termbox.Event) {
-	x := ev.MouseX
-	y := ev.MouseY
-	if x < 38 && y > 0 && y < h - 1 {
-		if list.TuneAtPos(y - 1) {
-			player.Play(list.CurrentItem().TuneIndex, -1)
-			sort.Sort(csdb.ByDate(player.CurrentTune.Releases))
+	switch ev.Key {
+	case termbox.MouseLeft:
+		x := ev.MouseX
+		y := ev.MouseY
+		if x < 38 && y > 0 && y < h - 1 {
+			if list.TuneAtPos(y - 1) {
+				player.Play(list.CurrentItem().TuneIndex, -1)
+				sort.Sort(csdb.ByDate(player.CurrentTune.Releases))
+			}
 		}
+	case termbox.MouseWheelUp:
+		list.PrevPage()
+	case termbox.MouseWheelDown:
+		list.NextPage()
 	}
 }
 
