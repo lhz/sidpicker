@@ -47,7 +47,7 @@ func ReadTunesInfoCached() {
 		return
 	}
 
-	//log.Print("Reading cached tunes info.")
+	//log.Printf("Reading cached tunes info from %q", tunesCachePath())
 	dataGzip, err := ioutil.ReadFile(tunesCachePath())
 	if err != nil {
 		log.Fatal(err)

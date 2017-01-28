@@ -109,6 +109,18 @@ func (l *List) NextTune() {
 	}
 }
 
+func (l *List) TuneAtPos(pagePos int) bool {
+	pos := l.pageOffset() + pagePos
+	if pos > l.maxPos() {
+		return false
+	}
+	if l.Items[pos].Type != ITEM_TUNE {
+		return false
+	}
+	l.PagePos = pagePos
+	return true
+}
+
 func (l *List) pos() int {
 	return l.pageOffset() + l.PagePos
 }

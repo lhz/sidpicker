@@ -68,6 +68,9 @@ func Run() {
 			case termbox.EventKey:
 				keyEvent(ev)
 				draw()
+			case termbox.EventMouse:
+				mouseEvent(ev)
+				draw()
 			case termbox.EventResize:
 				resizeEvent(ev)
 				draw()
@@ -163,6 +166,17 @@ func keyEventSearch(ev termbox.Event) {
 		}
 	default:
 		debugInfo = string(ev.Key)
+	}
+}
+
+func mouseEvent(ev termbox.Event) {
+	x := ev.MouseX
+	y := ev.MouseY
+	if x < 38 && y > 0 && y < h - 1 {
+		if list.TuneAtPos(y - 1) {
+			player.Play(list.CurrentItem().TuneIndex, -1)
+			sort.Sort(csdb.ByDate(player.CurrentTune.Releases))
+		}
 	}
 }
 
