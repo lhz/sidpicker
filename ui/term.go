@@ -115,12 +115,10 @@ func keyEvent(ev termbox.Event) {
 	case termbox.KeyArrowRight:
 		player.NextSong()
 	case termbox.KeyEnter:
-		player.Play(list.CurrentItem().TuneIndex, -1)
-		sort.Sort(csdb.ByDate(player.CurrentTune.Releases))
+		playSelected()
 	case termbox.KeySpace:
 		list.NextTune()
-		player.Play(list.CurrentItem().TuneIndex, -1)
-		sort.Sort(csdb.ByDate(player.CurrentTune.Releases))
+		playSelected()
 	case termbox.KeyDelete:
 		player.Stop()
 	case 0:
@@ -136,8 +134,7 @@ func keyEvent(ev termbox.Event) {
 		}
 		if ev.Ch == 'r' {
 			list.RandomTune()
-			player.Play(list.CurrentItem().TuneIndex, -1)
-			sort.Sort(csdb.ByDate(player.CurrentTune.Releases))
+			playSelected()
 		}
 	default:
 		debugInfo = string(ev.Key)
@@ -182,8 +179,7 @@ func mouseEvent(ev termbox.Event) {
 		y := ev.MouseY
 		if x < 38 && y > 0 && y < h - 1 {
 			if list.TuneAtPos(y - 1) {
-				player.Play(list.CurrentItem().TuneIndex, -1)
-				sort.Sort(csdb.ByDate(player.CurrentTune.Releases))
+				playSelected()
 			}
 		}
 	case termbox.MouseWheelUp:
@@ -198,6 +194,11 @@ func searchInsert(ch rune) {
 	copy(searchTerm[searchCursorPos+1:], searchTerm[searchCursorPos:])
 	searchTerm[searchCursorPos] = ch
 	searchCursorPos++
+}
+
+func playSelected() {
+	player.Play(list.CurrentItem().TuneIndex, -1)
+	sort.Sort(csdb.ByDate(player.CurrentTune.Releases))
 }
 
 func draw() {
