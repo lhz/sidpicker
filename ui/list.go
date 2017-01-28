@@ -1,7 +1,9 @@
 package ui
 
 import (
+	"math/rand"
 	"path/filepath"
+	"time"
 
 	"github.com/lhz/sidpicker/hvsc"
 )
@@ -119,6 +121,18 @@ func (l *List) TuneAtPos(pagePos int) bool {
 	}
 	l.PagePos = pagePos
 	return true
+}
+
+func (l *List) RandomTune() {
+	rand.Seed(time.Now().Unix())
+	for {
+		n := rand.Intn(l.maxPos() + 1)
+		if n != l.pos() && l.Items[n].Type == ITEM_TUNE {
+			l.PageNum = n / l.PageSize
+			l.PagePos = n - l.pageOffset()
+			break
+		}
+	}
 }
 
 func (l *List) pos() int {

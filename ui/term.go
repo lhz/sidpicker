@@ -132,6 +132,12 @@ func keyEvent(ev termbox.Event) {
 		}
 		if ev.Ch == '/' {
 			mode = MODE_SEARCH
+			return
+		}
+		if ev.Ch == 'r' {
+			list.RandomTune()
+			player.Play(list.CurrentItem().TuneIndex, -1)
+			sort.Sort(csdb.ByDate(player.CurrentTune.Releases))
 		}
 	default:
 		debugInfo = string(ev.Key)
