@@ -69,7 +69,7 @@ func ReadReleaseXML(path string) *Release {
 	}
 	elements := doc.FindElements("//CSDbData/Release")
 	if len(elements) != 1 {
-		log.Fatal("Expected 1 Release element, found %v", len(elements))
+		log.Fatalf("Expected 1 Release element, found %v in %s", len(elements), path)
 	}
 	r := Release{elem: elements[0]}
 	r.ID, _ = r.getInt("ID")

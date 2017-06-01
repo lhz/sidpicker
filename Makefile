@@ -1,14 +1,14 @@
 sidpicker=$(GOPATH)/bin/sidpicker
-extract=$(GOPATH)/bin/sid_release_extract
+sidusedex=$(GOPATH)/bin/sidusedex
 
 default: all
 
-all: $(sidpicker) $(extract)
+all: $(sidpicker) $(sidusedex)
 
 $(sidpicker): cmd/sidpicker.go config/*.go ui/*.go hvsc/*.go player/*.go csdb/*.go
 	go build -o $@ $<
 
-$(extract): cmd/sid_release_extract.go config/*.go
+$(sidusedex): cmd/releases.go config/*.go
 	go build -o $@ $<
 
 godeps:
