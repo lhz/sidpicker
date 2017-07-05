@@ -1,6 +1,8 @@
 # sidpicker
 Terminal interface for browsing/searching [HVSC](http://www.hvsc.c64.org/) and playing SID tunes.
 
+![Example screenshot](sidpicker.png)
+
 ## Requirements
 
 - High Voltage SID Collection (download [here](http://www.hvsc.c64.org/#download))
