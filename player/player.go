@@ -40,7 +40,7 @@ func Run() {
 			switch msg.Command {
 			case PLAY_COMMAND:
 				StartTime = time.Now()
-				playCmd = exec.Command("sidplayfp", "-o"+msg.Args[1], msg.Args[0])
+				playCmd = exec.Command("sidplayfp", "-ol", "-t0", "-o"+msg.Args[1], msg.Args[0])
 				playCmd.Stdout = os.Stdout
 				if err := playCmd.Start(); err != nil {
 					log.Print("Failed to start player process: ", err)

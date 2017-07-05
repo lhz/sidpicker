@@ -2,12 +2,20 @@ package csdb
 
 import (
 	"bytes"
+	"compress/gzip"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/beevik/etree"
+	"github.com/lhz/sidpicker/config"
 )
+
+const ReleasesUsedFile = "releases.json.gz"
 
 type Release struct {
 	ID     int      `json:"id"`
@@ -19,7 +27,41 @@ type Release struct {
 	elem   *etree.Element
 }
 
-func ReadRelease(path string) *Release {
+func (r *Release) URL() string {
+	return fmt.Sprintf("http://csdb.dk/release/?id=%d", r.ID)
+}
+
+var Releases = make([]Release, 0)
+
+func ReleasesPath() string {
+	return filepath.Join(config.Config.AppBase, ReleasesUsedFile)
+}
+
+func ReadReleases() {
+	if _, err := os.Stat(ReleasesPath()); os.IsNotExist(err) {
+		log.Println(err)
+		return
+	}
+
+	log.Print("Reading sid release usage info.")
+
+	dataGzip, err := ioutil.ReadFile(ReleasesPath())
+	if err != nil {
+		log.Fatal(err)
+	}
+	r, err := gzip.NewReader(bytes.NewBuffer(dataGzip))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = json.NewDecoder(r).Decode(&Releases)
+	if err != nil {
+		log.Fatalf("Failed to read sid release used file: %s", err)
+	}
+	log.Printf("Read %d releases.", len(Releases))
+}
+
+func ReadReleaseXML(path string) *Release {
 	doc := etree.NewDocument()
 	err := doc.ReadFromFile(path)
 	if err != nil {
@@ -27,7 +69,7 @@ func ReadRelease(path string) *Release {
 	}
 	elements := doc.FindElements("//CSDbData/Release")
 	if len(elements) != 1 {
-		log.Fatal("Expected 1 Release element, found %v", len(elements))
+		log.Fatalf("Expected 1 Release element, found %v in %s", len(elements), path)
 	}
 	r := Release{elem: elements[0]}
 	r.ID, _ = r.getInt("ID")

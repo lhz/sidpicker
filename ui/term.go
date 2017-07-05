@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
+	"github.com/lhz/sidpicker/csdb"
 	"github.com/lhz/sidpicker/hvsc"
 	"github.com/lhz/sidpicker/player"
 	"github.com/nsf/termbox-go"
@@ -25,13 +27,18 @@ var searchTerm []rune
 var searchCursorPos int
 var quit = false
 
-func Setup() {
+func Setup(initialSearch string) {
 	err := termbox.Init()
 	if err != nil {
 		log.Panicln(err)
 	}
 
 	w, h = termbox.Size()
+
+	if len(initialSearch) > 0 {
+		searchTerm = []rune(initialSearch)
+		hvsc.Filter(string(searchTerm))
+	}
 
 	list = NewList(h - 2)
 
@@ -54,12 +61,15 @@ func Run() {
 	}()
 
 	for !quit {
-		debugInfo = ""
+		// debugInfo = ""
 		select {
 		case ev := <-eventChan:
 			switch ev.Type {
 			case termbox.EventKey:
 				keyEvent(ev)
+				draw()
+			case termbox.EventMouse:
+				mouseEvent(ev)
 				draw()
 			case termbox.EventResize:
 				resizeEvent(ev)
@@ -105,10 +115,10 @@ func keyEvent(ev termbox.Event) {
 	case termbox.KeyArrowRight:
 		player.NextSong()
 	case termbox.KeyEnter:
-		player.Play(list.CurrentItem().TuneIndex, -1)
+		playSelected()
 	case termbox.KeySpace:
 		list.NextTune()
-		player.Play(list.CurrentItem().TuneIndex, -1)
+		playSelected()
 	case termbox.KeyDelete:
 		player.Stop()
 	case 0:
@@ -120,6 +130,11 @@ func keyEvent(ev termbox.Event) {
 		}
 		if ev.Ch == '/' {
 			mode = MODE_SEARCH
+			return
+		}
+		if ev.Ch == 'r' {
+			list.RandomTune()
+			playSelected()
 		}
 	default:
 		debugInfo = string(ev.Key)
@@ -157,11 +172,33 @@ func keyEventSearch(ev termbox.Event) {
 	}
 }
 
+func mouseEvent(ev termbox.Event) {
+	switch ev.Key {
+	case termbox.MouseLeft:
+		x := ev.MouseX
+		y := ev.MouseY
+		if x < 38 && y > 0 && y < h - 1 {
+			if list.TuneAtPos(y - 1) {
+				playSelected()
+			}
+		}
+	case termbox.MouseWheelUp:
+		list.PrevPage()
+	case termbox.MouseWheelDown:
+		list.NextPage()
+	}
+}
+
 func searchInsert(ch rune) {
 	searchTerm = append(searchTerm, rune(' '))
 	copy(searchTerm[searchCursorPos+1:], searchTerm[searchCursorPos:])
 	searchTerm[searchCursorPos] = ch
 	searchCursorPos++
+}
+
+func playSelected() {
+	player.Play(list.CurrentItem().TuneIndex, -1)
+	sort.Sort(csdb.ByDate(player.CurrentTune.Releases))
 }
 
 func draw() {
@@ -252,15 +289,14 @@ func drawReleases() {
 	oy += 2
 	y := oy
 
-	for i := 0; i < len(tune.Releases); i++ {
-		r := tune.Releases[len(tune.Releases)-i-1]
+	for _, r := range tune.Releases {
 
 		credits := make([]string, 0)
-		if r.Year != "" {
-			credits = append(credits, r.Year)
+		if r.Date != "" {
+			credits = append(credits, r.Date)
 		}
-		if r.Group != "" {
-			credits = append(credits, r.Group)
+		if len(r.Groups) > 0 {
+			credits = append(credits, strings.Join(r.Groups, ", "))
 		}
 
 		bylines := lineSplit(strings.Join(credits, " by "), 36)
@@ -271,18 +307,24 @@ func drawReleases() {
 		}
 
 		writeAt(ox, y, r.Name, termbox.ColorWhite, bg)
-		if len(r.Name) > mx { mx = len(r.Name) }
+		if len(r.Name) > mx {
+			mx = len(r.Name)
+		}
 
 		for j, byline := range bylines {
 			writeAt(ox, y+j+1, byline, termbox.ColorMagenta, bg)
-			if len(byline) > mx { mx = len(byline) }
+			if len(byline) > mx {
+				mx = len(byline)
+			}
 		}
 
 		url := r.URL()
 		writeAt(ox, y+len(bylines)+1, url, termbox.ColorBlue, bg)
-		if len(url) > mx { mx = len(url) }
+		if len(url) > mx {
+			mx = len(url)
+		}
 
-		y += 3+len(bylines)
+		y += 3 + len(bylines)
 	}
 }
 
@@ -324,7 +366,7 @@ func lineSplit(s string, w int) []string {
 	lines := make([]string, 0)
 	line := bytes.Buffer{}
 	for _, word := range words {
-		if line.Len() > 0 && line.Len() + len(word) > w {
+		if line.Len() > 0 && line.Len()+len(word) > w {
 			lines = append(lines, line.String())
 			line = bytes.Buffer{}
 		}

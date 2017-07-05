@@ -17,123 +17,14 @@ import (
 	"time"
 
 	"github.com/lhz/sidpicker/config"
+	"github.com/lhz/sidpicker/csdb"
 )
 
 const (
 	SongLengthsFile = "DOCUMENTS/Songlengths.txt"
-	TunesCacheFile  = "cache-tunes.json.gz"
+	TunesCacheFile  = "tunes.json.gz"
 	DefaultTitle    = "<?>"
 )
-
-type SidHeader struct {
-	MagicID     string `json:"magic,omitempty"`
-	Version     int    `json:"version,omitempty"`
-	DataOffset  uint16 `json:"offset,omitempty"`
-	LoadAddress uint16 `json:"load,omitempty"`
-	InitAddress uint16 `json:"init,omitempty"`
-	PlayAddress uint16 `json:"play,omitempty"`
-	Songs       int    `json:"songs,omitempty"`
-	StartSong   int    `json:"start,omitempty"`
-	Speed       uint32 `json:"speed,omitempty"`
-	Name        string `json:"name,omitempty"`
-	Author      string `json:"author,omitempty"`
-	Released    string `json:"released,omitempty"`
-	Flags       uint16 `json:"flags,omitempty"`
-	StartPage   byte   `json:"page,omitempty"`
-	PageLength  byte   `json:"pages,omitempty"`
-	Sid2Address uint16 `json:"s2addr,omitempty"`
-	Sid3Address uint16 `json:"s3addr,omitempty"`
-}
-
-type SidTune struct {
-	Index       int             `json:"-"`
-	Path        string          `json:"path"`
-	SongLengths []time.Duration `json:"lengths"`
-	Info        []string        `json:"info,omitempty"`
-	Releases    []Release       `json:"releases,omitempty"`
-	YearMin     int             `json:"year"`
-	YearMax     int             `json:"ymax,omitempty"`
-	Header      SidHeader       `json:"header"`
-}
-
-func (tune *SidTune) FullPath() string {
-	return fmt.Sprintf("%s/%s", config.Config.HvscBase, tune.Path)
-}
-
-func (tune *SidTune) Filename() string {
-	return filepath.Base(tune.Path)
-}
-
-func (tune *SidTune) Title() string {
-	if len(tune.Header.Name) > 0 {
-		return tune.Header.Name
-	} else {
-		return DefaultTitle
-	}
-}
-
-func (tune *SidTune) ListName() string {
-	if len(tune.Header.Name) > 0 {
-		return tune.Header.Name
-	} else {
-		name := tune.Filename()
-		ext := filepath.Ext(name)
-		return name[0 : len(name)-len(ext)]
-	}
-}
-
-func (tune *SidTune) InfoFilterText() string {
-	return strings.Join(tune.Info, " ")
-}
-
-func (tune *SidTune) ReleasesFilterText() string {
-	text := bytes.Buffer{}
-	for _, r := range tune.Releases {
-		if text.Len() > 0 {
-			text.WriteString(", ")
-		}
-		text.WriteString(r.Name)
-		if len(r.Group) > 0 {
-			text.WriteString(", ")
-			text.WriteString(r.Group)
-		}
-	}
-	return text.String()
-}
-
-func (tune *SidTune) Year() string {
-	return tune.Header.Released[0:4]
-}
-
-func (tune *SidTune) CalcYearMin() int {
-	value := strings.Split(tune.Header.Released, " ")[0]
-	value = strings.Split(value, "-")[0]
-	value = strings.Replace(value, "?", "0", -1)
-	v, err := strconv.Atoi(value)
-	if err != nil {
-		v = 1900
-	}
-	return v
-}
-
-func (tune *SidTune) CalcYearMax() int {
-	value := strings.Split(tune.Header.Released, " ")[0]
-	values := strings.Split(value, "-")
-	value = values[len(values)-1]
-	value = strings.Replace(value, "?", "9", -1)
-	if len(value) == 2 {
-		if value[0] < '7' {
-			value = "20" + value
-		} else {
-			value = "19" + value
-		}
-	}
-	v, err := strconv.Atoi(value)
-	if err != nil {
-		v = 9999
-	}
-	return v
-}
 
 var Tunes = make([]SidTune, 0)
 var NumTunes = 0
@@ -151,13 +42,13 @@ func TuneIndexByPath(path string) int {
 
 // Read tunes data from cache file
 func ReadTunesInfoCached() {
-	if _, err := os.Stat(hvscPathTo(TunesCacheFile)); os.IsNotExist(err) {
+	if _, err := os.Stat(tunesCachePath()); os.IsNotExist(err) {
 		ReadTunesInfo()
 		return
 	}
 
-	log.Print("Reading cached tunes info.")
-	dataGzip, err := ioutil.ReadFile(hvscPathTo(TunesCacheFile))
+	//log.Printf("Reading cached tunes info from %q", tunesCachePath())
+	dataGzip, err := ioutil.ReadFile(tunesCachePath())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -228,7 +119,7 @@ func ReadTunesInfo() {
 	}
 	w.Close()
 
-	err = ioutil.WriteFile(hvscPathTo(TunesCacheFile), dataGzip.Bytes(), 0644)
+	err = ioutil.WriteFile(tunesCachePath(), dataGzip.Bytes(), 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -369,4 +260,24 @@ func addDefaults() {
 		}
 		Tunes[i] = tune
 	}
+}
+
+func readReleases() {
+	csdb.ReadReleases()
+	for _, release := range csdb.Releases {
+		sids := release.SIDs
+		release.SIDs = nil
+		for _, path := range sids {
+			tuneIndex := TuneIndexByPath(path)
+			if tuneIndex < 0 {
+				log.Printf("Unknown path: %s", path)
+				continue
+			}
+			Tunes[tuneIndex].Releases = append(Tunes[tuneIndex].Releases, release)
+		}
+	}
+}
+
+func tunesCachePath() string {
+	return filepath.Join(config.Config.AppBase, TunesCacheFile)
 }

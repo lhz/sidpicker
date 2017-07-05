@@ -57,7 +57,7 @@ func tuneIndexByPath(path string) int {
 func tuneIndexByPathIndex(path string, index int) int {
 	for i, tune := range Tunes[index:] {
 		if tune.Path == path {
-			log.Printf("Found path at index %d from index %d: %s [%s]", index+i, index, path, Tunes[index].Path)
+			//log.Printf("Found path at index %d from index %d: %s [%s]", index+i, index, path, Tunes[index].Path)
 			return index + i
 		}
 	}
