@@ -26,7 +26,11 @@ Windows:
 setx HVSC_BASE C:\Download\C64Music
 ```
 
-Copy the file `cache-tunes.json` into the `HVSC_BASE` directory.
+If you have HVSC release version 66, you can copy the file `tunes-hvsc66.json.gz` into
+the `HVSC_BASE` directory and rename it to `tunes.json.gz`.
+
+If you have a different version of HVSC, sidpicker will build the tunes.json.gz itself
+the first time you run it, but it will take a while.
 
 ### sidplayfp
 
