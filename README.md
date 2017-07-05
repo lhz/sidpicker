@@ -51,6 +51,8 @@ Basic Rom = C:\C64\vice\C64\basic
 Chargen Rom = C:\C64\vice\C64\chargen
 ```
 
+You obviously need to adjust the file paths to where VICE has installed the ROM dumps on your system.
+
 ## Usage
 
 Simply run `sidpicker` in your terminal to start. At startup it will read the tune index and present you with a list of all tunes in the HVSC.
