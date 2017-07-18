@@ -44,5 +44,5 @@ func defaultAppBase() string {
 	if runtime.GOOS == "windows" {
 		return filepath.Join(os.Getenv("AppData"), "sidpicker")
 	}
-	return filepath.Join(os.Getenv("HOME"), ".sidpicker")
+	return filepath.Join(os.Getenv("HOME"), ".config", "sidpicker")
 }

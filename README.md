@@ -5,9 +5,10 @@ Terminal interface for browsing/searching [HVSC](http://www.hvsc.c64.org/) and p
 
 ## Requirements
 
-- High Voltage SID Collection (download [here](http://www.hvsc.c64.org/#download))
+- High Voltage SID Collection #67 (download [here](http://www.hvsc.c64.org/#download))
 - sidplayfp  (download [here](https://sourceforge.net/projects/sidplay-residfp/files/sidplayfp/1.4/))
 - C-64 ROM dumps (basic, kernal and chargen) (download [here](https://sourceforge.net/p/vice-emu/code/HEAD/tree/trunk/vice/data/C64/))
+- Precompiled index of HVSC tunes and CSDb releases using them (download [here](http://6581.no/sidpicker/hvsc-67/tunes.json.gz))
 
 ## Setup
 
@@ -25,12 +26,6 @@ Windows:
 ```
 setx HVSC_BASE C:\Download\C64Music
 ```
-
-If you have HVSC release version 66, you can copy the file `tunes-hvsc66.json.gz` into
-the `HVSC_BASE` directory and rename it to `tunes.json.gz`.
-
-If you have a different version of HVSC, sidpicker will build the tunes.json.gz itself
-the first time you run it, but it will take a while.
 
 ### sidplayfp
 
@@ -52,6 +47,13 @@ Chargen Rom = C:\C64\vice\C64\chargen
 ```
 
 You obviously need to adjust the file paths to where VICE has installed the ROM dumps on your system.
+
+### sidpicker
+
+You will need to move the precompiled index (see Requirements above) into sidpicker's config folder.
+On Linux and MacOS X this is `$HOME/.sidpicker/`, on Windows it is `%AppData%/sidpicker/`.
+
+The location of this folder can be overridden by setting the `SIDPICKER_BASE` environment variable.
 
 ## Usage
 
