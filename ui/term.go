@@ -11,6 +11,7 @@ import (
 	"github.com/lhz/sidpicker/csdb"
 	"github.com/lhz/sidpicker/hvsc"
 	"github.com/lhz/sidpicker/player"
+	"github.com/lhz/sidpicker/util"
 	"github.com/nsf/termbox-go"
 )
 
@@ -177,7 +178,7 @@ func mouseEvent(ev termbox.Event) {
 	case termbox.MouseLeft:
 		x := ev.MouseX
 		y := ev.MouseY
-		if x < 38 && y > 0 && y < h - 1 {
+		if x < 38 && y > 0 && y < h-1 {
 			if list.TuneAtPos(y - 1) {
 				playSelected()
 			}
@@ -283,7 +284,7 @@ func drawReleases() {
 	//fg := termbox.ColorDefault
 	bg := termbox.ColorDefault
 
-	line := fmt.Sprintf("Known Releases: %d", len(tune.Releases))
+	line := fmt.Sprintf("Used in %d CSDb %s:", len(tune.Releases), util.Pluralize("release", len(tune.Releases)))
 	writeAt(ox, oy, line, termbox.ColorYellow|termbox.AttrBold, termbox.ColorBlack)
 
 	oy += 2
