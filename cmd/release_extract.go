@@ -10,8 +10,8 @@ import (
 	"github.com/lhz/sidpicker/csdb"
 )
 
-const lastReleaseId = 156656               // TODO: Store in file
-const csdbPath = "/home/lars/src/lhz/csdb" // TODO: Add to config
+const lastReleaseId = 156656                        // TODO: Store in file
+const csdbPath = "/home/lars/src/lhz/csdb-releases" // TODO: Add to config
 
 func main() {
 	config.ReadConfig()
