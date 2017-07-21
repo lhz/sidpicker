@@ -8,7 +8,6 @@ Terminal interface for browsing/searching [HVSC](http://www.hvsc.c64.org/) and p
 - High Voltage SID Collection #67 (download [here](http://www.hvsc.c64.org/#download))
 - sidplayfp  (download [here](https://sourceforge.net/projects/sidplay-residfp/files/sidplayfp/1.4/))
 - C-64 ROM dumps (basic, kernal and chargen) (download [here](https://sourceforge.net/p/vice-emu/code/HEAD/tree/trunk/vice/data/C64/))
-- Precompiled index of HVSC tunes and CSDb releases using them (download [here](http://6581.no/sidpicker/hvsc-67/tunes.json.gz))
 
 ## Setup
 
@@ -48,16 +47,19 @@ Chargen Rom = C:\C64\vice\C64\chargen
 
 You obviously need to adjust the file paths to where VICE has installed the ROM dumps on your system.
 
-### sidpicker
-
-You will need to move the precompiled index (see Requirements above) into sidpicker's config folder.
-On Linux and MacOS X this is `$HOME/.sidpicker/`, on Windows it is `%AppData%/sidpicker/`.
-
-The location of this folder can be overridden by setting the `SIDPICKER_BASE` environment variable.
-
 ## Usage
 
 Simply run `sidpicker` in your terminal to start. At startup it will read the tune index and present you with a list of all tunes in the HVSC.
+
+The first time you run, it will detect the installed HVSC version and download a precompiled index including links to CSDb releases where
+each tune has been used.
+
+If you're offline, or have installed a brand new version of HVSC for which a precompiled index is not yet available, you can run the
+following command to build the index locally:
+```
+sidpicker -i
+```
+Note that when you build locally, the index will not include information about CSDb releases.
 
 ### Keyboard input
 
