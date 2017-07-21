@@ -232,6 +232,9 @@ func drawFooter() {
 	footer := fmt.Sprintf("%d/%d  %s", list.CurrentItem().TuneIndex+1, hvsc.NumFilteredTunes, debugInfo)
 	footer = fmt.Sprintf(fmt.Sprintf("%%s%%%ds", w-len([]rune(footer))), footer, "")
 	writeAt(0, h-1, footer, termbox.ColorWhite, termbox.ColorBlack)
+
+	right := fmt.Sprintf("HVSC #%d", hvsc.Release)
+	writeAt(w-len([]rune(right)), h-1, right, termbox.ColorWhite, termbox.ColorBlack)
 }
 
 func drawTuneInfo() {

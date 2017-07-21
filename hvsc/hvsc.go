@@ -7,8 +7,10 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -22,10 +24,11 @@ import (
 
 const (
 	SongLengthsFile = "DOCUMENTS/Songlengths.txt"
-	TunesCacheFile  = "tunes.json.gz"
+	TunesIndexFile  = "tunes.json.gz"
 	DefaultTitle    = "<?>"
 )
 
+var Release int
 var Tunes = make([]SidTune, 0)
 var NumTunes = 0
 
@@ -40,15 +43,18 @@ func TuneIndexByPath(path string) int {
 	return -1
 }
 
-// Read tunes data from cache file
-func ReadTunesInfoCached() {
-	if _, err := os.Stat(tunesCachePath()); os.IsNotExist(err) {
-		ReadTunesInfo()
+// Read tunes data from index file
+func ReadTunesIndex() {
+	detectRelease()
+
+	if _, err := os.Stat(tunesIndexPath()); os.IsNotExist(err) {
+		DownloadTunesIndex()
+		ReadTunesIndex()
 		return
 	}
 
-	//log.Printf("Reading cached tunes info from %q", tunesCachePath())
-	dataGzip, err := ioutil.ReadFile(tunesCachePath())
+	//log.Printf("Reading tunes index from %q", tunesIndexPath())
+	dataGzip, err := ioutil.ReadFile(tunesIndexPath())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,8 +71,35 @@ func ReadTunesInfoCached() {
 	FilterAll()
 }
 
+// Download tunes index from the website
+func DownloadTunesIndex() {
+	url := fmt.Sprintf("https://github.com/lhz/sidtune-index/raw/master/hvsc-%d/tunes.json.gz", Release)
+	fmt.Printf("Downloading index of tunes and releases.\n")
+	response, err := http.Get(url)
+	if err != nil {
+		log.Fatalf("Error while downloading %q: %s", url, err)
+	}
+	if response.StatusCode >= 400 {
+		log.Fatalf("Error while downloading %q: %s", url, response.Status)
+	}
+	defer response.Body.Close()
+
+	output, err := os.Create(tunesIndexPath())
+	if err != nil {
+		log.Fatal("Error while creating file ", tunesIndexPath(), " - ", err)
+	}
+	defer output.Close()
+
+	length, err := io.Copy(output, response.Body)
+	if err != nil {
+		log.Fatalf("Error while downloading %q: %s", url, err)
+	}
+
+	fmt.Printf("%.2fMB downloaded.\n", float64(length)/1000000)
+}
+
 // Build tunes data from .sid-files and various documents
-func ReadTunesInfo() {
+func BuildTunesIndex() {
 	file, err := os.Open(hvscPathTo(SongLengthsFile))
 	if err != nil {
 		log.Fatal(err)
@@ -75,7 +108,7 @@ func ReadTunesInfo() {
 
 	lr := regexp.MustCompile("[0-9]{1,2}:[0-9]{2}")
 
-	log.Print("Building tunes info cache.")
+	log.Print("Building tunes index.")
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -119,7 +152,7 @@ func ReadTunesInfo() {
 	}
 	w.Close()
 
-	err = ioutil.WriteFile(tunesCachePath(), dataGzip.Bytes(), 0644)
+	err = ioutil.WriteFile(tunesIndexPath(), dataGzip.Bytes(), 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -278,6 +311,19 @@ func readReleases() {
 	}
 }
 
-func tunesCachePath() string {
-	return filepath.Join(config.Config.AppBase, TunesCacheFile)
+func tunesIndexPath() string {
+	return filepath.Join(config.Config.AppBase, TunesIndexFile)
+}
+
+func detectRelease() {
+	content, err := ioutil.ReadFile(hvscPathTo("DOCUMENTS/hv_sids.txt"))
+	if err != nil {
+		log.Fatalf("Unable to detect HVSC version: %s", err)
+	}
+
+	lr := regexp.MustCompile("[0-9]+")
+	Release, err = strconv.Atoi(lr.FindString(string(content)))
+	if err != nil {
+		log.Fatalf("Unable to detect HVSC version from '%s'.", content)
+	}
 }
