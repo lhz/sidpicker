@@ -9,6 +9,8 @@ import (
 	"github.com/caarlos0/env"
 )
 
+const Version = "0.1.0"
+
 type ConfigData struct {
 	HvscBase string `env:"HVSC_BASE,required"`
 	AppBase  string `env:"SIDPICKER_BASE"`

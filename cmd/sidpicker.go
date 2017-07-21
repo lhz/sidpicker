@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"os"
 	"strings"
 	"sync"
@@ -14,10 +16,26 @@ import (
 var workerGroup sync.WaitGroup
 
 func main() {
+	reindexFlag := flag.Bool("i", false, "Rebuild tune index.")
+	versionFlag := flag.Bool("v", false, "Output version string then exit.")
+	flag.Parse()
+
 	config.ReadConfig()
 
-	hvsc.ReadTunesInfoCached()
-	//log.Printf("Read %d tunes.", hvsc.NumTunes)
+	// Output version string and exit
+	if *versionFlag {
+		fmt.Printf("sidpicker v%s\n", config.Version)
+		os.Exit(0)
+	}
+
+	// Rebuild tunes index and exit
+	if *reindexFlag {
+		hvsc.BuildTunesIndex()
+		fmt.Printf("Indexed %d tunes.\n", hvsc.NumTunes)
+		os.Exit(0)
+	}
+
+	hvsc.ReadTunesIndex()
 
 	workerGroup.Add(1)
 	go func() {
